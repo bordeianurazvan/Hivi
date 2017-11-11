@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="css/index.css" type="text/css">
+</head>
+<body>
+    <div class="navBar">
+        <ul>
+            <li><a  class="appName">HiVi</a></li>
+            <li><a  class="menuEntries">Network</a></li>
+            <li><a  class="menuEntries">Pie</a></li>
+            <li><a  class="menuEntries">Thumbnails</a></li>
+            <li><a  class="menuEntries">Settings</a></li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <div class="timeSelector">
+                <table>
+                    <tr class="textTimeSelector">
+                        <td>Start date:</td>
+                        <td>End Date:</td>
+                    </tr>
+                    <tr>
+                        <td><input class="buttonTimeSelector" type="date" name="startDate"></td>
+                        <td><input class="buttonTimeSelector" type="date" name="endDate"></td>
+                    </tr>
+                </table>
+        </div>
+        <div class="canvasContainer">
+            <canvas id="myCanvas" width="1660" height="700">
+            </canvas>
+
+        </div>
+    </div>
+</body>
+<script src="js/index.js"></script>
+<script src="js/canvas.js"></script>
+</html>
