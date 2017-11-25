@@ -2,19 +2,48 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
-    <script src="js/index.js"></script>
+    <title>HiVi - Settings</title>
     <link rel="stylesheet" href="css/settings.css" type="text/css">
 </head>
 <body>
 <div class="navBar">
     <ul>
-        <li><a  class="appName">HiVi</a></li>
+        <li><a  class="appName" >HiVi</a></li>
         <li><a  class="menuEntries">Network</a></li>
         <li><a  class="menuEntries">Pie</a></li>
         <li><a  class="menuEntries">Thumbnails</a></li>
-        <li><a  class="menuEntries">Settings</a></li>
+        <li><a  class="menuEntries" href="settings.html" >Settings</a></li>
     </ul>
 </div>
+<div class="container">
+    <div class="contentContainer">
+        <div class="baseContainer">
+            <div class="blacklist">
+                <div class="centered">
+                    <h2>Blacklist</h2>
+                </div>
+                <div class="centered">
+                    <table id="blacklistTable">
+                        <tr>
+                            <td><input id="blacklistInputField" type="text" class="blacklistInput"></td>
+                            <td><button id="blacklistInputTrigger">Add</button></td>
+                        </tr>
+                        <tr>
+                            <td>jksahdksajdsahkjdasdjhasjdksad</td>
+                            <td><button id="blacklistElementRemove">X</button></td>
+                        </tr>
+                    </table>
+                </div>
+
+            </div>
+            <div class="other">
+                <div class="centered">
+                    saldkhsadl
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="js/blacklistHandler.js"></script>
 </body>
 </html>

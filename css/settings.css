@@ -1,8 +1,13 @@
+html{
+    width: 100%;
+    height: 100%;
+}
 body{
     width: 100%;
     height: 100%;
     margin: 0;
     background-color: darkgrey;
+    overflow:hidden;
 }
 
 ul {
@@ -44,4 +49,67 @@ li a:hover:not(.active) {
     margin: 0;
     padding: 0;
 
+}
+.container{
+    width:100%;
+    height:100%;
+}
+.contentContainer{
+    /*border: 1px solid black;*/
+    margin-top: 25px;
+    background-color: darkgrey;
+    text-align:center;
+    width:100%;
+    height:100%;
+}
+
+.baseContainer{
+    background-color: white;
+    width:90%;
+    height:95%;
+    display:inline-block;
+    /*display: flex;*/
+}
+.blacklist{
+    float: left;
+    width: 60%;
+    height:100%;
+    background-color: white;
+    text-align: center;
+
+}
+.other{
+    float: left;
+    width:40%;
+    height: 100%;
+    background-color: white;
+}
+.centered{
+
+    display: block;
+}
+table{
+    display:inline-block;
+    border:2px solid black;
+
+}
+td{
+    text-align:left
+}
+td:first-child {
+    min-width: 400px;
+    max-width: 600px;
+    height:25px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    border:2px solid black;
+}
+td:last-child {
+    min-width: 40px;
+    max-width: 50px;
+    border:2px solid black;
+}
+.blacklistInput{
+    width:100%;
 }

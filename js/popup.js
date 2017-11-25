@@ -10,7 +10,7 @@ function settingsHandler(e) {
     window.close();
 }
 
-    document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('historyButton').addEventListener('click', historyHandler);
     document.getElementById('settingsButton').addEventListener('click', settingsHandler);
 
