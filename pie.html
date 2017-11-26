@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>HiVi</title>
-    <link rel="stylesheet" href="css/thumbnails.css" type="text/css">
+    <link rel="stylesheet" href="css/pie.css" type="text/css">
 </head>
 <body>
 <div class="navBar">
@@ -29,10 +29,19 @@
             </tr>
         </table>
     </div>
-    <div id="thumbnail" class="thumbnailsContainer">
+
+    <div id="pie" class="pieContainer">
+
+        <div class="canvasContainer">
+            <div id="pieLegend"></div>
+            <div id="myCanvasContainer"><canvas id="myCanvas" width="500" height="500">
+            </canvas></div>
+
+
+        </div>
 
     </div>
 </div>
 </body>
-<script src="js/thumbnails.js"></script>
+<script src="js/pie.js"></script>
 </html>
