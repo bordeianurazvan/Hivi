@@ -29,7 +29,7 @@
                             <td><button id="blacklistInputTrigger">Add</button></td>
                         </tr>
                         <tr>
-                            <td>jksahdksajdsahkjdasdjhasjdksad</td>
+                            <td>https://www.google.com</td>
                             <td><button id="blacklistElementRemove">X</button></td>
                         </tr>
                     </table>
@@ -38,7 +38,27 @@
             </div>
             <div class="other">
                 <div class="centered">
-                    saldkhsadl
+                    <h2>Settings</h2>
+                </div>
+                <div class="setting">
+                    <h3>Data source:</h3>
+                    <form action="">
+                        <input type="radio" name="source" value="history"> History<br>
+                        <input type="radio" name="source" value="bookmarks"> Bookmarks<br>
+                        <input type="radio" name="source" value="pocket"> Pocket
+                    </form>
+                </div>
+                <div class="setting">
+                    <h3>Displayed links:</h3>
+                    <form action="">
+                        <input id="maxLinksInputField" type="number" min="1" max="20">
+                    </form>
+                </div>
+                <br>
+                <div class="setting">
+                    <form action="">
+                        <input type="submit" value="Save">
+                    </form>
                 </div>
             </div>
         </div>
