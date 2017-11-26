@@ -34,10 +34,13 @@ function httpGetAsync(theUrl, callback)
             var secondRow = document.createElement("tr");
             var imageNode = document.createElement("td");
             imageNode.setAttribute("style","border:2px solid black;");
+            var imgUrl = document.createElement("a");
+            imgUrl.setAttribute("href",theUrl);
             var img = document.createElement("img");
             img.setAttribute("src","data:image/jpeg;base64,"+image3);
+            imgUrl.appendChild(img);
 
-            imageNode.appendChild(img);
+            imageNode.appendChild(imgUrl);
             secondRow.appendChild(imageNode);
             table.appendChild(secondRow);
 
