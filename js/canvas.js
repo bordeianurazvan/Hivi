@@ -63,45 +63,8 @@ function drawTruncatedURL(context,position,url){
     context.fillStyle = textColor;
     context.textAlign = "center";
     context.fillText(extractRootDomain(url),
-                     position.coord_x,position.coord_y);
+        position.coord_x,position.coord_y);
 }
-
-
-
-//check path between 2 items
-function getPaths(he1,he2){
-    var url1 = {"url" : he1.elem.url};
-    var url2 = {"url" : he2.elem.url};
-    var found = false;
-    chrome.history.getVisits(url1, function (stPage) {
-        stPage.forEach(function (page1) {
-            if(!found){
-                chrome.history.getVisits(url2, function (ndPage) {
-                    for(var i = 0;!found && i<ndPage.length;i++){
-                        if(page1.referringVisitId == ndPage[i].visitId){
-                            lines.push({"from":he1.pos,"to":he2.pos});
-                            he1.refs.push(he2.pos);
-                            found = true;
-                        }
-                    }
-
-                });
-            }
-
-        });
-    });
-
-}
-//limits the search at the last added entries
-function limitSearchesForArrow(list,element,limit){
-    for (var i = list.length-limit;i<list.length;i++){
-        if(i >= 0){
-            getPaths(list[i],element);
-        }
-    }
-}
-
-
 
 //extract hostname
 function extractHostname(url) {
@@ -125,35 +88,13 @@ function extractRootDomain(url) {
 
     if (arrLen > 2) {
         domain = splitArr[arrLen - 2] + '.' + splitArr[arrLen - 1];
-        if (splitArr[arrLen - 1].length == 2 && splitArr[arrLen - 1].length == 2) {
+        if (splitArr[arrLen - 1].length === 2 && splitArr[arrLen - 1].length === 2) {
             domain = splitArr[arrLen - 3] + '.' + domain;
         }
     }
     return domain;
 }
 
-
-
-
-//base asynchronous function which gets all the data needed
-function triggerHistoryRepresentation(){
-    chrome.history.search({text: '', maxResults: 30}, function(data) {
-        urls = [];
-        lines = [];
-        data.forEach(function(page) {
-            //getting coordinates for the new node
-            var circlePosition = newRandomPosition(urls);
-
-            var historyElement ={};
-            historyElement.elem = page;
-            historyElement.pos = circlePosition;
-            historyElement.refs = [];
-            limitSearchesForArrow(urls,historyElement,10);
-            urls.push(historyElement);
-
-        });
-    });
-}
 
 
 function drawGraph(nodes,arches){
@@ -163,10 +104,11 @@ function drawGraph(nodes,arches){
     for(var i = 0 ;i<arches.length;i++){
         drawArrow(context,arches[i].from,arches[i].to);
     }
-    for(var i = 0 ;i<nodes.length;i++){
+    for(i = 0 ;i<nodes.length;i++){
         drawCircle(context,nodes[i].pos);
         drawTruncatedURL(context,nodes[i].pos,nodes[i].elem.url);
     }
+    console.log(lines);
 }
 
 
@@ -183,21 +125,24 @@ function checkIntersection(list1,list2){
     }
     return false;
 }
-function getPaths2(he1,he2) {
+
+
+function getPaths(he1,he2) {
     var url1 = {"url": he1.elem.url};
     var url2 = {"url": he2.elem.url};
     chrome.history.getVisits(url1, function (stPage) {
         var firstArray = [];
         for (var i = 0; i < stPage.length; i++) {
-            if(!(stPage[i].referringVisitId == "0")) {
-                firstArray.push(stPage[i].referringVisitId);
+            if(!(stPage[i].visitId === "0")) {
+                firstArray.push(stPage[i].visitId);
             }
         }
+
         chrome.history.getVisits(url2, function (ndPage) {
             var secondArray = [];
             for (var j = 0; j < ndPage.length; j++) {
-                if(!(ndPage[j].visitId == "0")) {
-                    secondArray.push(ndPage[j].visitId);
+                if(!(ndPage[j].referringVisitId === "0")) {
+                    secondArray.push(ndPage[j].referringVisitId);
                 }
             }
 
@@ -205,46 +150,41 @@ function getPaths2(he1,he2) {
                 lines.push({"from":he1.pos,"to":he2.pos});
                 he1.refs.push(he2.pos);
             }
-            console.log(firstArray,secondArray);
-            console.log(he1.elem.url,he2.elem.url);
+
         });
 
     });
 }
 
-function limitSearchesForArrow2(list,element,limit){
-    for (var i = list.length-limit;i<list.length;i++){
-        if(i >= 0){
-            getPaths2(list[i],element);
-        }
+function limitSearchesForArrow(list,element,start){
+    for (var i = list.length-1;i > start; i--){
+        getPaths(list[i],element);
     }
 }
 
 
-function triggerHistoryRepresentation2(){
+function triggerHistoryRepresentation(){
     chrome.history.search({text: '', maxResults: 50}, function(data) {
         urls = [];
         lines = [];
         data.forEach(function(page) {
             //getting coordinates for the new node
             var circlePosition = newRandomPosition(urls);
-
             var historyElement ={};
             historyElement.elem = page;
             historyElement.pos = circlePosition;
             historyElement.refs = [];
-            limitSearchesForArrow2(urls,historyElement,10);
             urls.push(historyElement);
-
         });
+        for( var i = 0;i < urls.length; i++) {
+            limitSearchesForArrow(urls, urls[i], i);
+        }
     });
 }
 //experimental:end
 
 
-
-
-triggerHistoryRepresentation2();
-setTimeout(function(){ drawGraph(urls,lines) }, 1000);
+triggerHistoryRepresentation();
+setTimeout(function(){ drawGraph(urls,lines) }, 2000);
 
 
