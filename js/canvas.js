@@ -12,16 +12,18 @@ var circleLineWidth = 2;
 var textFont = "12px Arial";
 var textColor = "black";
 //container limits
-var container_width = document.getElementById("myCanvas").getAttribute("width")-100;
-var container_height = document.getElementById("myCanvas").getAttribute("height")-100;
 
+var canvas = document.getElementById('myCanvas');
+var context = canvas.getContext('2d');
+context.canvas.height = window.innerHeight -(0.2*window.innerHeight);
+context.canvas.width = window.innerWidth -(0.1*window.innerWidth);
 
 
 function newRandomPosition(list){
     var rn = {};
     do{
-        rn.coord_x = Math.floor(Math.random() * container_width)+50;
-        rn.coord_y = Math.floor(Math.random() * container_height)+50;
+        rn.coord_x = Math.floor(Math.random() * (context.canvas.width - 100))+50;
+        rn.coord_y = Math.floor(Math.random() * (context.canvas.height - 100))+50;
     }while(!checkPositions(list,rn));
     return rn;
 }
@@ -98,9 +100,8 @@ function extractRootDomain(url) {
 
 
 function drawGraph(nodes,arches){
-    var canvas = document.getElementById('myCanvas');
-    var context = canvas.getContext('2d');
-    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
     for(var i = 0 ;i<arches.length;i++){
         drawArrow(context,arches[i].from,arches[i].to);
     }
@@ -108,7 +109,6 @@ function drawGraph(nodes,arches){
         drawCircle(context,nodes[i].pos);
         drawTruncatedURL(context,nodes[i].pos,nodes[i].elem.url);
     }
-    console.log(lines);
 }
 
 
@@ -164,7 +164,7 @@ function limitSearchesForArrow(list,element,start){
 
 
 function triggerHistoryRepresentation(){
-    chrome.history.search({text: '', maxResults: 50}, function(data) {
+    chrome.history.search({text: '', maxResults: 30}, function(data) {
         urls = [];
         lines = [];
         data.forEach(function(page) {
@@ -182,9 +182,27 @@ function triggerHistoryRepresentation(){
     });
 }
 //experimental:end
-
-
 triggerHistoryRepresentation();
 setTimeout(function(){ drawGraph(urls,lines) }, 2000);
+window.addEventListener("resize",function(e){
+
+    var newHeight = window.innerHeight -(0.2*window.innerHeight);
+    var newWidth = window.innerWidth -(0.1*window.innerWidth);
+
+    for(var i = 0;i < urls.length; i++){
+        urls[i].pos.coord_x = urls[i].pos.coord_x * (newWidth / context.canvas.width);
+        urls[i].pos.coord_y = urls[i].pos.coord_y * (newHeight / context.canvas.height);
+    }
+    for(var j = 0;j < lines.length; j++){
+        lines[j].coord_x = lines[j].coord_x * (newWidth / context.canvas.width);
+        lines[j].coord_y = lines[j].coord_y * (newHeight / context.canvas.height);
+    }
+    console.log(context.canvas.height,newHeight,context.canvas.width,newWidth);
+    context.canvas.height = newHeight;
+    context.canvas.width = newWidth;
+    drawGraph(urls,lines);
+
+});
+
 
 
