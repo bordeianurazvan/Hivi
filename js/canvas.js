@@ -135,8 +135,6 @@ function generateHistoryGraph(relink) {
 
     var svg = d3.select(".GraphContainer").append("svg")
         .attr("id","my_svg")
-        .attr("width", width)
-        .attr("height", height)
         .attr("viewBox","0 0 960 500")
         .attr("preserveAspectRatio","xMidYMid meet");
 
