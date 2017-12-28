@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>HiVi</title>
     <link rel="stylesheet" href="css/index.css" type="text/css">
+    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 </head>
 <body>
     <div class="navBar">
@@ -23,20 +24,24 @@
                         <td>Start date:</td>
                         <td>End Date:</td>
                         <td></td>
+                        <td></td>
                     </tr>
                     <tr>
                         <td><input class="buttonTimeSelector" type="date" name="startDate"></td>
                         <td><input class="buttonTimeSelector" type="date" name="endDate"></td>
-                        <td><button class="butonel">Download PNG</button></td>
+                        <td><button class="downloadSVG" id="dsvg">SVG</button></td>
+                        <td><button class="downloadSVG" id="dpng">PNG</button></td>
                     </tr>
                 </table>
         </div>
-        <div class="canvasContainer">
-            <canvas id="myCanvas">
-            </canvas>
+        <div class="GraphContainer">
+
         </div>
     </div>
+    <div class="menu" id="menu">
+        <div class="menu-item" id="goto" data-action="goto">Go To...</div>
+        <div class="menu-item" id="del" data-action="delete">Delete Entry</div>
+    </div>
 </body>
-<script src="js/index.js"></script>
 <script src="js/canvas.js"></script>
 </html>
