@@ -18,6 +18,20 @@ document.getElementsByTagName("body")[0].appendChild(cvs);
 document.getElementsByTagName("body")[0].appendChild(imagediv);
 //done
 
+//settings
+var source = localStorage["hivi_data_source"];
+var results = parseInt(localStorage["hivi_max_entries"]);
+var blackList = JSON.parse(localStorage["hivi_blacklist_items"]).items;
+//done
+
+function isBlackListed(list,item){
+    for(var i = 0; i < list.length; i++) {
+        if(item == list[i]){
+            return true;
+        }
+    }
+    return false;
+}
 //extract hostname
 function extractHostname(url) {
     var hostname;
@@ -97,14 +111,17 @@ function limitSearchesForArrow(list,element,start){
 }
 
 
-function triggerHistoryRepresentation() {
-    chrome.history.search({text: '', maxResults: 30}, function (data) {
+function triggerHistoryRepresentation(startDate,endDate,max_entries,blacklist) {
+    chrome.history.search({text: '', maxResults: max_entries, startTime:startDate, endTime:endDate}, function (data) {
         urls = [];
         links = [];
+        nodes ={};
         data.forEach(function (page) {
-            var historyElement = {};
-            historyElement.elem = page;
-            urls.push(historyElement);
+            if(!isBlackListed(blacklist,page.url)){
+                var historyElement = {};
+                historyElement.elem = page;
+                urls.push(historyElement);
+            }
         });
         for (var i = 0; i < urls.length; i++) {
             limitSearchesForArrow(urls, urls[i], 0);
@@ -122,20 +139,20 @@ function generateHistoryGraph(relink) {
         });
     }
     var width = 960;
-    var height = 500;
+    var height = 450;
 
     var force = d3.layout.force()
         .nodes(d3.values(nodes))
         .links(links)
         .size([width, height])
         .linkDistance(100)
-        .charge(-300)
+        .charge(-200)
         .on("tick", tick)
         .start();
 
     var svg = d3.select(".GraphContainer").append("svg")
         .attr("id","my_svg")
-        .attr("viewBox","0 0 960 500")
+        .attr("viewBox","0 0 960 450")
         .attr("preserveAspectRatio","xMidYMid meet");
 
     svg.append("defs").selectAll("marker")
@@ -184,8 +201,8 @@ function generateHistoryGraph(relink) {
     text.attr("style", "text-shadow:0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff; font:10px sans-serif;");
     circle.attr("style","fill:#cc4b45; stroke:#333; stroke-width:1.5px;");
     path.attr("style","fill:none; stroke:#666; stroke-width:1.5px;");
-    //add metadata to circles
 
+    //add metadata to circles
     circle.append("title")
         .text(function(d) { return d.title; });
 
@@ -208,7 +225,8 @@ function generateHistoryGraph(relink) {
 
     function tick() {
         path.attr("d", linkArc);
-        circle.attr("transform", transform);
+        circle.attr("cx", function(d) { return d.x = Math.max(20, Math.min(width - 20, d.x)); })
+            .attr("cy", function(d) { return d.y = Math.max(20, Math.min(height - 20, d.y)); });
         text.attr("transform", transform);
     }
 
@@ -224,41 +242,6 @@ function generateHistoryGraph(relink) {
     }
 }
 
-//listeners for context menu
-document.getElementById("menu").addEventListener("click",function(e){
-    if(e.target.dataset.action == "goto") {
-        var win = window.open(selectedNode, '_blank');
-        win.focus();
-    } else if(e.target.dataset.action == "delete") {
-        //delete action
-        delete nodes[selectedNode];
-        links = links.filter(function(l) {
-            return l.source.name != selectedNode && l.target.name != selectedNode;
-        });
-        //delete async history entry via chrome API
-        chrome.history.deleteUrl({url : selectedNode}, function(e){});
-        var s = d3.selectAll('svg');
-        s.selectAll("*").remove();
-        s = s.remove();
-        generateHistoryGraph(false);
-
-    }
-});
-window.addEventListener("click", function(){
-    if(menuDisplayed == true){
-        menuBox.style.display = "none";
-    }
-}, true);
-//done
-
-//listeners for data download
-document.getElementById("dsvg").addEventListener("click", function(){
-    writeToFileSVG();
-});
-document.getElementById("dpng").addEventListener("click", function(){
-    writeToFilePNG();
-});
-//done
 
 //main download functions
 function writeToFileSVG(){
@@ -302,8 +285,88 @@ function writeToFilePNG(){
 //done
 
 
-triggerHistoryRepresentation();
-setTimeout(function(){ generateHistoryGraph(true) }, 2000);
+//listeners for context menu
+document.getElementById("menu").addEventListener("click",function(e){
+    if(e.target.dataset.action == "goto") {
+        var win = window.open(selectedNode, '_blank');
+        win.focus();
+    } else if(e.target.dataset.action == "delete") {
+        //delete action
+        delete nodes[selectedNode];
+        links = links.filter(function(l) {
+            return l.source.name != selectedNode && l.target.name != selectedNode;
+        });
+        //delete async history entry via chrome API
+        chrome.history.deleteUrl({url : selectedNode}, function(e){});
+        var s = d3.selectAll('svg');
+        s.selectAll("*").remove();
+        s = s.remove();
+        generateHistoryGraph(false);
+
+    }
+});
+window.addEventListener("click", function(){
+    if(menuDisplayed == true){
+        menuBox.style.display = "none";
+    }
+}, true);
+//done
+
+//listeners for data download
+document.getElementById("dsvg").addEventListener("click", function(){
+    writeToFileSVG();
+});
+document.getElementById("dpng").addEventListener("click", function(){
+    writeToFilePNG();
+});
+//done
+
+//fully implemented history display
+function displayHistory(){
+    //working with date interval
+    var today = new Date();
+    var dd = today.getDate();
+    var mm = today.getMonth()+1; //January is 0!
+    var yyyy = today.getFullYear();
+    var startDate =  "" + yyyy + "-" + mm + "-" + dd;
+    var endDate = "" + yyyy + "-" + mm + "-" + dd;
+    document.getElementById("start").value = startDate;
+    document.getElementById("end").value = endDate;
+    var start = (new Date(startDate)).setHours(0,0,0,0);
+    var end = (new Date(endDate)).setHours(23,59,59,999);
+    //end
+    triggerHistoryRepresentation(start,end,results,blackList);
+    setTimeout(function(){ generateHistoryGraph(true) }, 1000);
+    document.getElementById("start").addEventListener("change",function(e){
+        start = (new Date(e.srcElement.value)).setHours(0,0,0,0);
+        var s = d3.selectAll('svg');
+        s.selectAll("*").remove();
+        s = s.remove();
+        triggerHistoryRepresentation(start,end,results,blackList);
+        setTimeout(function(){ generateHistoryGraph(true) }, 2000);
+    });
+    document.getElementById("end").addEventListener("change",function(e){
+        end = (new Date(e.srcElement.value)).setHours(23,59,59,999);
+        var s = d3.selectAll('svg');
+        s.selectAll("*").remove();
+        s = s.remove();
+        triggerHistoryRepresentation(start,end,results,blackList);
+        setTimeout(function(){ generateHistoryGraph(true) }, 2000);
+    })
+}
+
+if(source == "history"){
+    displayHistory();
+
+} else if(source == "bookmarks"){
+
+} else if(source == "pocket") {
+
+} else {
+    //default is history (for corrupted data in localStorage)
+    displayHistory();
+}
+
 
 
 
