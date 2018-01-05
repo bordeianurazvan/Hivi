@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>HiVi</title>
     <link rel="stylesheet" href="css/thumbnails.css" type="text/css">
+    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 </head>
 <body>
 <div class="navBar">
@@ -24,8 +25,8 @@
                 <td>End Date:</td>
             </tr>
             <tr>
-                <td><input class="buttonTimeSelector" type="date" name="startDate"></td>
-                <td><input class="buttonTimeSelector" type="date" name="endDate"></td>
+                <td><input id="start" class="buttonTimeSelector" type="date" name="startDate"></td>
+                <td><input id="end" class="buttonTimeSelector" type="date" name="endDate"></td>
             </tr>
         </table>
     </div>
