@@ -139,34 +139,82 @@ function triggerRepresentationByHistory(startDate,endDate,max_entries,blacklist)
     });
 }
 
-function getLinksFromBookmarks(data){
+function getLinksFromBookmarks(folders, key, data){
     if(data.hasOwnProperty("children")) {
         for (var i = 0; i < data.children.length; i++) {
-            getLinksFromBookmarks(data.children[i]);
+            getLinksFromBookmarks(folders, data.title, data.children[i]);
         }
     }else{
-        if(data.url != null)
-            links_list.push(data.url);
+        if(data.url != null) {
+            if (folders[key] != null)
+                folders[key].push(data.url);
+            else{
+                folders[key] = [];
+                folders[key].push(data.url);
+            }
+        }
     }
     return links_list;
 }
 
-function triggerReprezentationByBookmarks(links_list, blacklist){
+
+function displayfolder(name){
+    var node = document.getElementById("thumbnail");
+
+    var table = document.createElement("table");
+    table.setAttribute("style","border:2px solid black; display: inline-block;");
+
+    //url row
+    var firstRow = document.createElement("tr");
+    var urlNode = document.createElement("td");
+    urlNode.setAttribute("style","max-width: 40px;" +
+        "    text-overflow: ellipsis;" +
+        "    overflow: hidden;" +
+        "    white-space: nowrap;");
+    var actualUrl = document.createElement("a");
+    var text = document.createTextNode(name);
+    actualUrl.setAttribute("href","thumbnails.html");
+    actualUrl.addEventListener("click", function () {
+        localStorageGetsUrl(name);
+    });
+
+
+    actualUrl.appendChild(text);
+    urlNode.appendChild(actualUrl);
+    firstRow.appendChild(urlNode);
+    table.appendChild(firstRow);
+
+    //image row
+    var secondRow = document.createElement("tr");
+    var imageNode = document.createElement("td");
+    imageNode.setAttribute("style","border:2px solid black;");
+    var imgUrl = document.createElement("a");
+    imgUrl.setAttribute("href","thumbnails.html");
+    imgUrl.addEventListener("click",function() {localStorageGetsUrl(name);});
+    var img = document.createElement("img");
+    img.setAttribute("src","img/folder.png");
+    imgUrl.appendChild(img);
+
+    imageNode.appendChild(imgUrl);
+    secondRow.appendChild(imageNode);
+    table.appendChild(secondRow);
+
+    //append table to base node
+    node.appendChild(table);
+}
+
+function triggerReprezentationByBookmarks(folders_list, blacklist){
     if(localStorage["hostname"] == ""){
-        var list = {};
-        for(var i = 0; i < links_list.length; i++){
-            if(!isBlackListed(blacklist,links_list[i]) && (extractHostname(links_list[i]) != extractHostname(chrome.extension.getURL("")))){
-                var string = extractHostname(links_list[i]);
-                if(list[string] == null){
-                    httpGetAsync(extractHostname(links_list[i]));
-                    list[string] = 1;
-                }
-            }
+        for (key in folders_list){
+            console.log(key);
+            displayfolder(key);
         }
     }else{
-        for(var i = 0; i < links_list.length; i++){
-            if(!isBlackListed(blacklist,links_list[i]) && (extractHostname(links_list[i]) == localStorage["hostname"])){
-                httpGetAsync(links_list[i]);
+        console.log(localStorage["hostname"]);
+        var folder = localStorage["hostname"];
+        for(var i = 0; i < folders_list[folder].length; i++){
+            if(!isBlackListed(blacklist,folders_list[folder][i])){
+                httpGetAsync(folders_list[folder][i]);
             }
         }
         localStorage["hostname"] = "";
@@ -192,27 +240,22 @@ function displayHistory(){
 
         document.getElementById("start").addEventListener("change",function(e){
             start = (new Date(e.srcElement.value)).setHours(0,0,0,0);
-            var s = d3.selectAll('svg');
-            s.selectAll("*").remove();
-            s = s.remove();
+            document.getElementById('thumbnail').innerHTML = "";
             triggerRepresentationByHistory(start,end,results,blackList);
             setTimeout(function(){ generateHistoryGraph(true) }, 2000);
         });
         document.getElementById("end").addEventListener("change",function(e){
             end = (new Date(e.srcElement.value)).setHours(23,59,59,999);
-            var s = d3.selectAll('svg');
-            s.selectAll("*").remove();
-            s = s.remove();
+            document.getElementById('thumbnail').innerHTML = "";
             triggerRepresentationByHistory(start,end,results,blackList);
             setTimeout(function(){ generateHistoryGraph(true) }, 2000);
         })
     }else{
-        var links = [];
         chrome.bookmarks.getTree(function(data){
-            links_list = [];
-            links = getLinksFromBookmarks(data[0]);
-            console.log(links);
-            triggerReprezentationByBookmarks(links, blackList);
+            folders_list = {};
+            getLinksFromBookmarks(folders_list, "Bookmarks bar", data[0]);
+            console.log(folders_list);
+            triggerReprezentationByBookmarks(folders_list, blackList);
         });
     }
 
