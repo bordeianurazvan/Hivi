@@ -1,7 +1,6 @@
 
 //settings
 var source = localStorage["hivi_data_source"];
-var results = parseInt(localStorage["hivi_max_entries"]);
 var blackList = JSON.parse(localStorage["hivi_blacklist_items"]).items;
 var links_list = [];
 if(localStorage["hostname"] == null){
@@ -115,8 +114,8 @@ function replaceInString(string, character, characterToReplace){
     return newString;
 }
 
-function triggerRepresentationByHistory(startDate,endDate,max_entries,blacklist) {
-    chrome.history.search({text: '', maxResults: max_entries, startTime:startDate, endTime:endDate}, function (data) {
+function triggerRepresentationByHistory(startDate,endDate,blacklist) {
+    chrome.history.search({text: '', startTime:startDate, endTime:endDate}, function (data) {
         if(localStorage["hostname"] == ""){
             var list = {};
             data.forEach(function(page) {
@@ -236,18 +235,18 @@ function displayHistory(){
     var end = (new Date(endDate)).setHours(23,59,59,999);
     //end
     if(source == "history"){
-        triggerRepresentationByHistory(start,end,results,blackList);
+        triggerRepresentationByHistory(start,end,blackList);
 
         document.getElementById("start").addEventListener("change",function(e){
             start = (new Date(e.srcElement.value)).setHours(0,0,0,0);
             document.getElementById('thumbnail').innerHTML = "";
-            triggerRepresentationByHistory(start,end,results,blackList);
+            triggerRepresentationByHistory(start,end,blackList);
             setTimeout(function(){ generateHistoryGraph(true) }, 2000);
         });
         document.getElementById("end").addEventListener("change",function(e){
             end = (new Date(e.srcElement.value)).setHours(23,59,59,999);
             document.getElementById('thumbnail').innerHTML = "";
-            triggerRepresentationByHistory(start,end,results,blackList);
+            triggerRepresentationByHistory(start,end,blackList);
             setTimeout(function(){ generateHistoryGraph(true) }, 2000);
         })
     }else{
