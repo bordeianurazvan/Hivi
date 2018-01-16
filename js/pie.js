@@ -1,18 +1,32 @@
-var urls = [];
+var historyEntries = [];
+var historyUrlEntries = [];
+var historyDomainEntries = [];
+var duPie = 0;
 
-function triggerHistoryRepresentation(){
-    chrome.history.search({text: '', maxResults: 10}, function(data) {
-        urls = [];
-        data.forEach(function(page) {
-            urls.push(page);
+var bookmarkEntries = [];
+var basicBookmarksStrings = [];
+//settings
+var source = localStorage["hivi_data_source"]; // get data source from settings
+var results = parseInt(localStorage["hivi_max_entries"]); // get the displayed links number from settings
+var blackList = JSON.parse(localStorage["hivi_blacklist_items"]).items; // get blackList items
+if(localStorage["hostname"] == null){
+    localStorage["hostname"] = "";
+}
+//done Settings
 
 
-        });
 
-    });
+//check if an item is on the blacklist
+function isBlackListed(list,item){
+    for(var i = 0; i < list.length; i++) {
+        if(item == list[i]){
+            return true;
+        }
+    }
+    return false;
 }
 
-//extract hostname for an url
+//extract hostname for an url [include "www" as a link]
 function extractHostname(url) {
     var hostname;
     if (url.indexOf("://") > -1) {
@@ -26,7 +40,7 @@ function extractHostname(url) {
     return hostname;
 }
 
-//extract domain for an url
+//extract domain for an url [without "www" as a text]
 function extractRootDomain(url) {
     var domain = extractHostname(url);
     var splitArr = domain.split('.');
@@ -34,111 +48,730 @@ function extractRootDomain(url) {
 
     if (arrLen > 2) {
         domain = splitArr[arrLen - 2] + '.' + splitArr[arrLen - 1];
-        if (splitArr[arrLen - 1].length == 2 && splitArr[arrLen - 1].length == 2) {
-            domain = splitArr[arrLen - 3] + '.' + domain;
-        }
     }
     return domain;
 }
 
-function getDomainsByUrls(listOfUrls){
-    var domainsList = [];
+
+//Start History
+function triggerRepresentationByHistory(startDate,endDate,max_entries,blacklist) {
+    chrome.history.search({text: '', maxResults: max_entries, startTime:startDate, endTime:endDate}, function (data) {
+            data.forEach(function(page) {
+                if(!isBlackListed(blacklist,page.url) && (extractHostname(page.url) != extractHostname(chrome.extension.getURL("")))){
+
+                    historyEntries.push(page);
+                    historyUrlEntries.push(page.url);
+                    historyDomainEntries.push(extractRootDomain(page.url));
+
+                }
+            });
+
+        drawPie();
+
+    });
+}
 
 
-    for (var i = 0; i < listOfUrls.length; i++){
+var today = new Date();
+var dd = today.getDate();
+var mm = today.getMonth()+1; //January is 0!
+var yyyy = today.getFullYear();
+var startDate =  "" + yyyy + "-" + mm + "-" + dd;
+var endDate = "" + yyyy + "-" + mm + "-" + dd;
+document.getElementById("start").value = startDate;
+document.getElementById("end").value = endDate;
+var start = (new Date(startDate)).setHours(0,0,0,0);
+var end = (new Date(endDate)).setHours(23,59,59,999);
 
-        var rootDomain = extractRootDomain(listOfUrls[i].url);
-        var found = false;
 
-        for (var j = 0; j < domainsList.length ; j++){
-            if (domainsList[j].name === rootDomain ) {
-                found = true;
-                domainsList[j].frequency +=1;
+
+document.getElementById("start").addEventListener("change",function(e){
+    start = (new Date(e.srcElement.value)).setHours(0,0,0,0);
+    var s = d3.selectAll('svg');
+    s.selectAll("*").remove();
+    s = s.remove();
+   triggerRepresentationByHistory(start,end,results,blackList);
+   // setTimeout(function(){ triggerRepresentationByHistory(start,end,results,blackList); }, 2000);
+});
+
+document.getElementById("end").addEventListener("change",function(e){
+    end = (new Date(e.srcElement.value)).setHours(23,59,59,999);
+    var s = d3.selectAll('svg');
+    s.selectAll("*").remove();
+    s = s.remove();
+   triggerRepresentationByHistory(start,end,results,blackList);
+   // setTimeout(function(){triggerRepresentationByHistory(start,end,results,blackList);}, 2000);
+});
+
+
+function getUrlsForALabel(label){
+    var urls = [];
+    for(var i = 0; i < historyEntries.length; i++){
+        var urlDetails ={};
+        if(label == extractRootDomain(historyEntries[i].url) ){
+            urlDetails.url = historyEntries[i].url;
+            urlDetails.title = historyEntries[i].title;
+            urls.push(urlDetails);
+        }
+    }
+    console.log(urls);
+    return urls;
+}
+
+
+function getUrlsForALabelStrings(label){
+    var urls = [];
+    for(var i = 0; i < historyEntries.length; i++){
+        if(label == extractRootDomain(historyEntries[i].url) ){
+            urls.push(historyEntries[i].url)
+        }
+    }
+    return urls;
+}
+
+function getTitleForUrl(url){
+    for(var i = 0; i < historyEntries.length; i++){
+        if(url == historyEntries[i].url){
+            return historyEntries[i].title;
+        }
+
+    }
+    return url;
+}
+
+function getValueForALabel(label){
+
+    var frequency = 0;
+    for(var i = 0; i < historyUrlEntries.length; i++){
+        if (label === extractRootDomain(historyUrlEntries[i])){
+            frequency++;
+        }
+    }
+    return frequency;
+}
+//Done History
+
+
+function drawPie() {
+
+
+var svg = d3.select(".PieContainer")
+    .append("svg")
+    .append("g");
+
+ var actualSvg = d3.select("svg")
+        .attr("viewBox","0 0 1000 850")
+        .attr("preserveAspectRatio","xMidYMin meet")
+        .attr("id","my_svg");
+
+
+svg.append("g")
+    .attr("class", "slices"); //grupul "feliilor"
+svg.append("g")
+    .attr("class", "labels"); //grupul "textelor"
+svg.append("g")
+    .attr("class", "lines"); // grupul liniilor de la pie la text"
+svg.append("g")
+    .attr("class", "center"); // go back button
+
+
+
+
+var width = 960,
+    height = 600,
+    radius = Math.min(width,height) / 2;
+
+//setam layout-ul pt pie
+var pie = d3.layout.pie()  //this will create arc data for us given a list of values
+    .sort(null)     //ordine aleatoare a slice-urilor
+    .value(function(d) {  //we must tell it out to access the value of each element in our data array
+        return d.value;
+    });
+
+var arc = d3.svg.arc()  //pie arc
+    .outerRadius(radius * 0.9) // unghi exterior
+    .innerRadius(radius * 0.5); // unghi interior
+
+
+var outerArc = d3.svg.arc() // line arc
+    .innerRadius(radius * 0.9) //unghiurile pentru linie
+    .outerRadius(radius * 1.0);
+
+//translatarea catre mijlocul distantelor (width,height)
+svg.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+var key = function(d){ return d.data.label; };
+
+var color = d3.scale.category20c()
+    /*.domain(['WIA4XT', 'OZ2FJZ', 'XI9PXT', '2B6SJY', 'BG3JZS', 'XLLAPA', 'WWLYJA', '8PIN9D', 'Q16YGC', 'Z1U4UD', '0HBKFY', 'QX6IBG', 'V7YOZX', 'XRSL7W', 'OK0A71', '2WZEYZ', 'MKAHJD', 'OTS15U', '79YXOG', 'ANC3E1',
+        '82IQCJ', 'OMSJ8W', 'AWK03Z', 'KAZSER', 'E5214V', 'QJVXZH', 'XZ9ARA', 'W6FJV3', '6W1SJS', 'KBPFU9'])*/
+    .domain(historyDomainEntries)
+    .range(["#1a75ff", "#9999ff", "#ccccff", "#80dfff", "#00ace6", "#80ffbf", "#00cc66","#004d26", "#d9ff66", "#99cc00", "#ffff80", "#ffff00", "#808000", "#ff9900"
+    ,"#ff8c66", "#cc3300", "#669999", "#ff6600", "#ff99cc", "#cc0066", "#4d0026","#ff80ff", "#990099", "#ff0080", "#660033", "#bb99ff", "#7733ff", "#c2c2d6",
+        "#5c5c8a", "#ccffff"]);
+
+function domainData (){
+    var labels = color.domain();
+    //var labels = historyDomainEntries;
+    return labels.map(function(label){
+        return { label: label, value: getValueForALabel(label) }
+        //return { label: label, value: Math.random() }
+
+    })
+   /* .sort(function(a,b) {
+        return d3.descending(a.label, b.label);
+    });*/
+}
+
+change(domainData());
+
+function urlsDataForADomain (domain){
+    var color = d3.scale.category20c()
+        .domain(getUrlsForALabelStrings(domain))
+        .range(["#1a75ff", "#9999ff", "#ccccff", "#80dfff", "#00ace6", "#80ffbf", "#00cc66","#004d26", "#d9ff66", "#99cc00", "#ffff80", "#ffff00", "#808000", "#ff9900"
+            ,"#ff8c66", "#cc3300", "#669999", "#ff6600", "#ff99cc", "#cc0066", "#4d0026","#ff80ff", "#990099", "#ff0080", "#660033", "#bb99ff", "#7733ff", "#c2c2d6",
+            "#5c5c8a", "#ccffff"]);
+    var urlLabels = color.domain();
+    console.log(urlLabels);
+    return urlLabels.map(function(urlLabel){
+        //return {label: getTitleForUrl(urlLabel), value: Math.random()}
+        return {label: urlLabel, value: 1}
+    });
+}
+
+
+function mergeWithFirstEqualZero(first, second){
+    var secondSet = d3.set();
+    second.forEach(function(d) { secondSet.add(d.label); });
+    var onlyFirst = first
+        .filter(function(d){ return !secondSet.has(d.label) })
+        .map(function(d) { return {label: d.label, value: 0}; });
+
+    return d3.merge([ second, onlyFirst ])
+        .sort(function(a,b) {
+            return d3.ascending(a.label, b.label);
+        });
+}
+
+function change(data) {
+    var duration = 2000;
+    var data0 = svg.select(".slices").selectAll("path.slice")
+        .data().map(function(d) { return d.data });
+    if (data0.length == 0) data0 = data;
+    var was = mergeWithFirstEqualZero(data, data0);
+    var is = mergeWithFirstEqualZero(data0, data);
+
+   /* var actualCenter = svg.select(".center");
+    console.log(actualCenter);
+    if(actualCenter != null){
+        actualCenter.remove();
+    }*/
+
+
+    /* ------- SLICE ARCS -------*/
+
+    var slice = svg.select(".slices").selectAll("path.slice")
+        .data(pie(was), key);
+
+    slice.enter()
+        .insert("path")
+        .attr("class", "slice")
+        .style("fill", function(d) { return color(d.data.label); })
+        .each(function(d) {
+            this._current = d;
+        });
+
+    slice.on("click",function(d){
+        if (duPie == 0) {
+            var x = urlsDataForADomain(d.data.label);
+            duPie = 1;
+            change(x);
+        }
+        else
+        {
+            var win = window.open(d.data.label, '_blank');
+            win.focus();
+        }
+
+    });
+
+    slice = svg.select(".slices").selectAll("path.slice")
+        .data(pie(is), key);
+
+    slice
+        .transition().duration(duration)
+        .attrTween("d", function(d) {
+            var interpolate = d3.interpolate(this._current, d);
+            var _this = this;
+            return function(t) {
+                _this._current = interpolate(t);
+                return arc(_this._current);
+            };
+        });
+
+    slice = svg.select(".slices").selectAll("path.slice")
+        .data(pie(data), key);
+
+    slice
+        .exit().transition().delay(duration).duration(0)
+        .remove();
+
+    /* ------- TEXT LABELS -------*/
+
+    var text = svg.select(".labels").selectAll("text")
+        .data(pie(was), key);
+
+    text.enter()
+        .append("text")
+        .attr("dy", ".35em")
+        .style("opacity", 0)
+        .text(function(d) {
+            var x = getTitleForUrl(d.data.label);
+            if (x.length == 0){
+                return extractRootDomain(d.data.label);
             }
+            return x;
+        })
+        .each(function(d) {
+            this._current = d;
+        });
+
+    function midAngle(d){
+        return d.startAngle + (d.endAngle - d.startAngle)/2;
+    }
+
+    text = svg.select(".labels").selectAll("text")
+        .data(pie(is), key);
+
+    text.transition().duration(duration)
+        .style("opacity", function(d) {
+            return d.data.value == 0 ? 0 : 1;
+        })
+        .attrTween("transform", function(d) {
+            var interpolate = d3.interpolate(this._current, d);
+            var _this = this;
+            return function(t) {
+                var d2 = interpolate(t);
+                _this._current = d2;
+                var pos = outerArc.centroid(d2);
+                pos[0] = radius * (midAngle(d2) < Math.PI ? 1 : -1);
+                return "translate("+ pos +")";
+            };
+        })
+        .styleTween("text-anchor", function(d){
+            var interpolate = d3.interpolate(this._current, d);
+            return function(t) {
+                var d2 = interpolate(t);
+                return midAngle(d2) < Math.PI ? "start":"end";
+            };
+        });
+
+    text = svg.select(".labels").selectAll("text")
+        .data(pie(data), key);
+
+    text
+        .attr("style","background-color: #333; width: 200px;")
+        .exit().transition().delay(duration)
+        .remove();
+
+    /* ------- SLICE TO TEXT POLYLINES -------*/
+
+    var polyline = svg.select(".lines").selectAll("polyline")
+
+        .data(pie(was), key);
+
+    polyline.enter()
+        .append("polyline")
+        .style("opacity", 0)
+        .each(function(d) {
+            this._current = d;
+        });
+
+    polyline = svg.select(".lines").selectAll("polyline")
+        .data(pie(is), key);
+
+    polyline.transition().duration(duration)
+        .style("opacity", function(d) {
+            return d.data.value == 0 ? 0 : 1;
+        })
+        .attrTween("points", function(d){
+            this._current = this._current;
+            var interpolate = d3.interpolate(this._current, d);
+            var _this = this;
+            return function(t) {
+                var d2 = interpolate(t);
+                _this._current = d2;
+                var pos = outerArc.centroid(d2);
+                pos[0] = radius * 0.95 * (midAngle(d2) < Math.PI ? 1 : -1);
+                return [arc.centroid(d2), outerArc.centroid(d2), pos];
+            };
+        });
+
+    polyline = svg.select(".lines").selectAll("polyline")
+
+        .data(pie(data), key);
+
+    polyline
+        .attr("style"," stroke: #333;" + "stroke-width: 1px;" + "fill: none;")
+        .exit().transition().delay(duration)
+        .remove();
+
+
+    /* ------- Center -------*/
+    var center = svg.select(".center");
+
+    // The circle displaying back button
+    center.append("svg:circle")
+        .attr("r", radius  * 0.3)
+        .style("fill", "#E7E7E7")
+        .on("click",function(){
+            if(duPie == 0){
+            }
+            else{
+                duPie = 0;
+                change(domainData());
+            }
+
+        });
+
+    center.append("text")
+        .attr('text-anchor', 'middle')
+        .style('font-weight', 'bold')
+        .style('font-size','15px')
+        .style("opacity", function() {
+        return duPie ? 1:0;
+    })
+        .text("Go Back");
+
+
+};
+}
+
+// SOURCE WORKER
+if(source === "history") {
+    triggerRepresentationByHistory(start,end,results,blackList);
+} else if(source === "bookmarks") {
+    triggerRepresentationByBookmark();
+} else if(source === "pocket") {
+
+} else {
+    //default is history (for corrupted data in localStorage)
+    triggerRepresentationByHistory(start,end,results,blackList);
+}
+
+
+//Start Bookmarks
+
+
+function getChildrenForAParent(parent){
+
+}
+
+function triggerRepresentationByBookmark(){
+
+    chrome.bookmarks.getTree(function(data){
+        for(var i = 0; i < data[0].children.length; i++) {
+            bookmarkEntries.push(data[0].children[i]);
+            basicBookmarksStrings.push(data[0].children[i].title);
         }
-        if (found == false){
 
-            var domain = {};
-            domain.name = rootDomain;
-            domain.frequency = 1;
+    });
+    console.log(bookmarkEntries);
+    setTimeout(function(){drawPieByBookmarks();},1);
+}
 
-            domainsList.push(domain);
+
+
+//Done Bookmarks
+
+function drawPieByBookmarks(){
+    var svg = d3.select(".PieContainer")
+        .append("svg")
+        .append("g");
+
+    var actualSvg = d3.select("svg")
+        .attr("viewBox","0 0 1000 850")
+        .attr("preserveAspectRatio","xMidYMin meet")
+        .attr("id","my_svg");
+
+
+    svg.append("g")
+        .attr("class", "slices"); //grupul "feliilor"
+    svg.append("g")
+        .attr("class", "labels"); //grupul "textelor"
+    svg.append("g")
+        .attr("class", "lines"); // grupul liniilor de la pie la text"
+    svg.append("g")
+        .attr("class", "center"); // go back button
+
+
+    var width = 960,
+        height = 600,
+        radius = Math.min(width,height) / 2;
+
+//setam layout-ul pt pie
+    var pie = d3.layout.pie()  //this will create arc data for us given a list of values
+        .sort(null)     //ordine aleatoare a slice-urilor
+        .value(function(d) {  //we must tell it out to access the value of each element in our data array
+            return d.value;
+        });
+
+    var arc = d3.svg.arc()  //pie arc
+        .outerRadius(radius * 0.9) // unghi exterior
+        .innerRadius(radius * 0.5); // unghi interior
+
+
+    var outerArc = d3.svg.arc() // line arc
+        .innerRadius(radius * 0.9) //unghiurile pentru linie
+        .outerRadius(radius * 1.0);
+
+//translatarea catre mijlocul distantelor (width,height)
+    svg.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+    var key = function(d){ return d.data.label; };
+
+    var color = d3.scale.category20c()
+        .domain(basicBookmarksStrings)
+        .range(["#1a75ff", "#9999ff", "#ccccff", "#80dfff", "#00ace6", "#80ffbf", "#00cc66","#004d26", "#d9ff66", "#99cc00", "#ffff80", "#ffff00", "#808000", "#ff9900"
+            ,"#ff8c66", "#cc3300", "#669999", "#ff6600", "#ff99cc", "#cc0066", "#4d0026","#ff80ff", "#990099", "#ff0080", "#660033", "#bb99ff", "#7733ff", "#c2c2d6",
+            "#5c5c8a", "#ccffff"]);
+
+    function domainData (){
+        var labels = color.domain();
+        return labels.map(function(label){
+            return { label: label, value: 1 }
+            //return { label: label, value: Math.random() }
+
+        })
+        /* .sort(function(a,b) {
+             return d3.descending(a.label, b.label);
+         });*/
+    }
+
+    change(domainData());
+
+    function urlsDataForADomain (domain){
+        var color = d3.scale.category20c()
+            .domain(getUrlsForALabelStrings(domain))
+            .range(["#1a75ff", "#9999ff", "#ccccff", "#80dfff", "#00ace6", "#80ffbf", "#00cc66","#004d26", "#d9ff66", "#99cc00", "#ffff80", "#ffff00", "#808000", "#ff9900"
+                ,"#ff8c66", "#cc3300", "#669999", "#ff6600", "#ff99cc", "#cc0066", "#4d0026","#ff80ff", "#990099", "#ff0080", "#660033", "#bb99ff", "#7733ff", "#c2c2d6",
+                "#5c5c8a", "#ccffff"]);
+        var urlLabels = color.domain();
+        console.log(urlLabels);
+        return urlLabels.map(function(urlLabel){
+            //return {label: getTitleForUrl(urlLabel), value: Math.random()}
+            return {label: urlLabel, value: 1}
+        });
+    }
+
+
+    function mergeWithFirstEqualZero(first, second){
+        var secondSet = d3.set();
+        second.forEach(function(d) { secondSet.add(d.label); });
+        var onlyFirst = first
+            .filter(function(d){ return !secondSet.has(d.label) })
+            .map(function(d) { return {label: d.label, value: 0}; });
+
+        return d3.merge([ second, onlyFirst ])
+            .sort(function(a,b) {
+                return d3.ascending(a.label, b.label);
+            });
+    }
+
+    function change(data) {
+        var duration = 2000;
+        var data0 = svg.select(".slices").selectAll("path.slice")
+            .data().map(function(d) { return d.data });
+        if (data0.length == 0) data0 = data;
+        var was = mergeWithFirstEqualZero(data, data0);
+        var is = mergeWithFirstEqualZero(data0, data);
+
+        /* var actualCenter = svg.select(".center");
+         console.log(actualCenter);
+         if(actualCenter != null){
+             actualCenter.remove();
+         }*/
+
+
+        /* ------- SLICE ARCS -------*/
+
+        var slice = svg.select(".slices").selectAll("path.slice")
+            .data(pie(was), key);
+
+        slice.enter()
+            .insert("path")
+            .attr("class", "slice")
+            .style("fill", function(d) { return color(d.data.label); })
+            .each(function(d) {
+                this._current = d;
+            });
+
+       /* slice.on("click",function(d){
+            if (duPie == 0) {
+                var x = urlsDataForADomain(d.data.label);
+                duPie = 1;
+                change(x);
+            }
+            else
+            {
+                var win = window.open(d.data.label, '_blank');
+                win.focus();
+            }
+
+        });*/
+
+        slice = svg.select(".slices").selectAll("path.slice")
+            .data(pie(is), key);
+
+        slice
+            .transition().duration(duration)
+            .attrTween("d", function(d) {
+                var interpolate = d3.interpolate(this._current, d);
+                var _this = this;
+                return function(t) {
+                    _this._current = interpolate(t);
+                    return arc(_this._current);
+                };
+            });
+
+        slice = svg.select(".slices").selectAll("path.slice")
+            .data(pie(data), key);
+
+        slice
+            .exit().transition().delay(duration).duration(0)
+            .remove();
+
+        /* ------- TEXT LABELS -------*/
+
+        var text = svg.select(".labels").selectAll("text")
+            .data(pie(was), key);
+
+        text.enter()
+            .append("text")
+            .attr("dy", ".35em")
+            .style("opacity", 0)
+          /*  .text(function(d) {
+                var x = getTitleForUrl(d.data.label);
+                if (x.length == 0){
+                    return extractRootDomain(d.data.label);
+                }
+                return x;
+            })*/
+            .text(function(d){
+                return d.data.label;
+            })
+            .each(function(d) {
+                this._current = d;
+            });
+
+        function midAngle(d){
+            return d.startAngle + (d.endAngle - d.startAngle)/2;
         }
-    }
-    return domainsList;
+
+        text = svg.select(".labels").selectAll("text")
+            .data(pie(is), key);
+
+        text.transition().duration(duration)
+            .style("opacity", function(d) {
+                return d.data.value == 0 ? 0 : 1;
+            })
+            .attrTween("transform", function(d) {
+                var interpolate = d3.interpolate(this._current, d);
+                var _this = this;
+                return function(t) {
+                    var d2 = interpolate(t);
+                    _this._current = d2;
+                    var pos = outerArc.centroid(d2);
+                    pos[0] = radius * (midAngle(d2) < Math.PI ? 1 : -1);
+                    return "translate("+ pos +")";
+                };
+            })
+            .styleTween("text-anchor", function(d){
+                var interpolate = d3.interpolate(this._current, d);
+                return function(t) {
+                    var d2 = interpolate(t);
+                    return midAngle(d2) < Math.PI ? "start":"end";
+                };
+            });
+
+        text = svg.select(".labels").selectAll("text")
+            .data(pie(data), key);
+
+        text
+            .attr("style","background-color: #333; width: 200px;")
+            .exit().transition().delay(duration)
+            .remove();
+
+        /* ------- SLICE TO TEXT POLYLINES -------*/
+
+        var polyline = svg.select(".lines").selectAll("polyline")
+
+            .data(pie(was), key);
+
+        polyline.enter()
+            .append("polyline")
+            .style("opacity", 0)
+            .each(function(d) {
+                this._current = d;
+            });
+
+        polyline = svg.select(".lines").selectAll("polyline")
+            .data(pie(is), key);
+
+        polyline.transition().duration(duration)
+            .style("opacity", function(d) {
+                return d.data.value == 0 ? 0 : 1;
+            })
+            .attrTween("points", function(d){
+                this._current = this._current;
+                var interpolate = d3.interpolate(this._current, d);
+                var _this = this;
+                return function(t) {
+                    var d2 = interpolate(t);
+                    _this._current = d2;
+                    var pos = outerArc.centroid(d2);
+                    pos[0] = radius * 0.95 * (midAngle(d2) < Math.PI ? 1 : -1);
+                    return [arc.centroid(d2), outerArc.centroid(d2), pos];
+                };
+            });
+
+        polyline = svg.select(".lines").selectAll("polyline")
+
+            .data(pie(data), key);
+
+        polyline
+            .attr("style"," stroke: #333;" + "stroke-width: 1px;" + "fill: none;")
+            .exit().transition().delay(duration)
+            .remove();
+
+
+        /* ------- Center -------*/
+        var center = svg.select(".center");
+
+        // The circle displaying back button
+        center.append("svg:circle")
+            .attr("r", radius  * 0.3)
+            .style("fill", "#E7E7E7")
+            .on("click",function(){
+                if(duPie == 0){
+                }
+                else{
+                    duPie = 0;
+                    change(domainData());
+                }
+
+            });
+
+        center.append("text")
+            .attr('text-anchor', 'middle')
+            .style('font-weight', 'bold')
+            .style('font-size','15px')
+            .style("opacity", function() {
+                return duPie ? 1:0;
+            })
+            .text("Go Back");
+
+
+    };
+
 }
-
-function getTotalFrequencies(listOfDomains){
-
-    var totalFrequencies = 0;
-
-    for (var i = 0; i < listOfDomains.length; i++){
-        totalFrequencies += listOfDomains[i].frequency;
-    }
-
-    return totalFrequencies;
-
-}
-
-function getRandomColor() {
-    var letters = '0123456789ABCDEF';
-    var color = '#';
-    for (var i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-}
-
-function drawPieByDomains(listOfUrls){
-    var domainsList = getDomainsByUrls(listOfUrls);
-    var totalFrequencies = getTotalFrequencies(domainsList);
-
-    var canvas = document.getElementById("myCanvas");
-    var ctx = canvas.getContext("2d");
-    var lastend = 0;
-    var color;
-
-    for (var i = 0; i < domainsList.length; i++) {
-        color = getRandomColor();
-        generateLegendEntry(domainsList[i].name,color);
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.moveTo(canvas.width / 2, canvas.height / 2);
-        ctx.arc(canvas.width / 2, canvas.height / 2, canvas.height / 2, lastend, lastend + (Math.PI * 2 * (domainsList[i].frequency / totalFrequencies)), false);
-        ctx.lineTo(canvas.width / 2, canvas.height / 2);
-        ctx.fill();
-        lastend += Math.PI * 2 * (domainsList[i].frequency / totalFrequencies);
-
-    }
-
-}
-
-function generateLegendEntry(name,color){
-    var node = document.getElementById("pieLegend");
-    var table = document.createElement("table");
-    var row = document.createElement("tr");
-
-    var colorTd = document.createElement("td");
-    var colorDiv = document.createElement("div");
-    colorDiv.setAttribute("style","width:15px; height:15px; background-color:"+color+";");
-    colorTd.appendChild(colorDiv);
-
-    var nameTd = document.createElement("td");
-    var text = document.createTextNode(name);
-    nameTd.appendChild(text);
-
-    row.appendChild(colorTd);
-    row.appendChild(nameTd);
-
-    table.appendChild(row);
-
-    node.appendChild(table);
-
-
-}
-
-triggerHistoryRepresentation();
-
-setTimeout(function(){ drawPieByDomains(urls) }, 1000);
-//setTimeout(function(){ getDomainsByUrls(urls) }, 1000);
-

@@ -67,44 +67,47 @@ li a:hover:not(.active) {
     text-align: right;
 }
 
-.container{
-    width:100%;
-    height:100%;
-}
-.canvasContainer{
-    /*border: 1px solid black;*/
-    margin-top: 25px;
-    background-color: white;
-    text-align:center;
-    width:80%;
-    height:100%;
-    display: inline-block;
-}
-
-#myCanvas{
-    margin-top: 30px;
-    background-color: white;
-
-}
-
-.pieContainer{
+.container
+{
     width: 100%;
-    height: 90%;
+    height: 100%;
+}
+
+.InnerContainer
+{
+    width: 100%;
+    height: 100%;
     text-align: center;
-    overflow: auto;
 }
 
-#pieLegend{
-
-    padding-top: 15px;
-    padding-left:10px;
-    float:left;
-    width: 10%;
+.PieContainer {
+    border-radius: 5px 5px 0 0;
+    padding-top: 50px;
+    margin: 25px auto 0;
+    background-color: #fff;
     height: 100%;
+    text-align: center;
 }
 
-#myCanvasContainer{
-    /*width: 89%;*/
+svg{width: 100% !important;}
+.slice{stroke: white; stroke-width: 5px;}
+.slice:hover{opacity: .5;}
+.labels text{background-color: #333; width: 200px;}
+
+
+svg{
+    width: 100%;
     height: 100%;
-    /*float: left;*/
+
 }
+path.slice{
+    stroke-width:5px;
+}
+
+polyline{
+    stroke: #333;
+    stroke-width: 1px;
+    fill: none;
+}
+
+

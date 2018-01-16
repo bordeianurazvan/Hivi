@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>HiVi</title>
     <link rel="stylesheet" href="css/pie.css" type="text/css">
+    <script src="https://d3js.org/d3.v3.min.js"></script>
 </head>
 <body>
 <div class="navBar">
@@ -23,28 +24,24 @@
                 <td>Start date:</td>
                 <td>End Date:</td>
                 <td></td>
+                <td></td>
             </tr>
             <tr>
-                <td><input class="buttonTimeSelector" type="date" name="startDate"></td>
-                <td><input class="buttonTimeSelector" type="date" name="endDate"></td>
-                <td><button class="butonel">Download PNG</button></td>
+                <td><input id="start" class="buttonTimeSelector" type="date" name="startDate"></td>
+                <td><input id="end" class="buttonTimeSelector" type="date" name="endDate"></td>
+                <td><button class="downloadSVG" id="dsvg">SVG</button></td>
+                <td><button class="downloadSVG" id="dpng">PNG</button></td>
             </tr>
         </table>
     </div>
-
-    <div id="pie" class="pieContainer">
-
-        <div class="canvasContainer">
-            <div id="pieLegend"></div>
-            <div id="myCanvasContainer"><h2>History Pie</h2>
-                <canvas id="myCanvas" width="450" height="450">
-            </canvas></div>
-
+    <div class="InnerContainer">
+        <div class="PieContainer">
 
         </div>
-
     </div>
+
 </div>
 </body>
 <script src="js/pie.js"></script>
+<script src="js/downloader.js"></script>
 </html>
