@@ -138,6 +138,30 @@ function triggerRepresentationByHistory(startDate,endDate,blacklist) {
     });
 }
 
+function triggerReprezentationByPocket(blacklist,pocketObject){
+    if(localStorage["hostname"] == ""){
+        var list = {};
+        for (var i in pocketObject){
+            var url = pocketObject[i].resolved_url;
+            if(!isBlackListed(blacklist,url)){
+                var host = extractHostname(url);
+                if(list[host] == null){
+                    httpGetAsync(extractHostname(url));
+                    list[host] = 1;
+                }
+            }
+        }
+    }else{
+        for (var i in pocketObject){
+            var url = pocketObject[i].resolved_url;
+            if(!isBlackListed(blacklist,url) && (extractHostname(url) == localStorage["hostname"])){
+                httpGetAsync(url);
+            }
+        }
+        localStorage["hostname"] = "";
+    }
+}
+
 function getLinksFromBookmarks(folders, key, data){
     if(data.hasOwnProperty("children")) {
         for (var i = 0; i < data.children.length; i++) {
@@ -250,12 +274,21 @@ function displayHistory(){
             setTimeout(function(){ generateHistoryGraph(true) }, 2000);
         })
     }else{
-        chrome.bookmarks.getTree(function(data){
+        if(source == "bookmarks"){
+            var element = document.getElementById("data");
+            element.parentNode.removeChild(element);
+            chrome.bookmarks.getTree(function(data){
             folders_list = {};
             getLinksFromBookmarks(folders_list, "Bookmarks bar", data[0]);
             console.log(folders_list);
             triggerReprezentationByBookmarks(folders_list, blackList);
         });
+        }else{
+            var element = document.getElementById("data");
+            element.parentNode.removeChild(element);
+            var pocketObject = JSON.parse(localStorage["hivi_pocket"]);
+            triggerReprezentationByPocket(blackList,pocketObject);
+        }
     }
 
 }
