@@ -4,6 +4,7 @@ document.getElementById("save").addEventListener("click",function(e){
     } else if(document.getElementById("bookmarks").checked) {
         localStorage["hivi_data_source"] = "bookmarks";
     } else if(document.getElementById("pocket").checked) {
+        getPocket();
         localStorage["hivi_data_source"] = "pocket";
     }
     var value = document.getElementById("linksNumber").value;
@@ -18,3 +19,4 @@ document.getElementById("save").addEventListener("click",function(e){
 
     }
 });
+

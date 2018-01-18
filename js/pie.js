@@ -12,10 +12,20 @@ var blackList = JSON.parse(localStorage["hivi_blacklist_items"]).items; // get b
 if(localStorage["hostname"] == null){
     localStorage["hostname"] = "";
 }
+var pocketObject = JSON.parse(localStorage["hivi_pocket"]);
+var bookmarkEntriesFromPocket = [];
+console.log(pocketObject);
 //done Settings
 
+function getbooks(){
+    for (var i in pocketObject){
+        bookmarkEntries.push(pocketObject[i]);
+        console.log(pocketObject[i].resolved_title);
+    }
 
+}
 
+getbooks();
 //check if an item is on the blacklist
 function isBlackListed(list,item){
     for(var i = 0; i < list.length; i++) {
@@ -218,9 +228,9 @@ function domainData (){
         //return { label: label, value: Math.random() }
 
     })
-   /* .sort(function(a,b) {
+    .sort(function(a,b) {
         return d3.descending(a.label, b.label);
-    });*/
+    });
 }
 
 change(domainData());
