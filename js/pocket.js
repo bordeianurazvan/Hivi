@@ -14,7 +14,7 @@ function getPocket() {
                 }
             }
         };
-        xmlhttp.send("consumer_key=" + consumer_key + "&" + __access_token_string + "&" + "count=10" + "&" + "detailType=simple");
+        xmlhttp.send("consumer_key=" + consumer_key + "&" + __access_token_string + "&" + "count=30" + "&" + "detailType=simple");
     }
 
 
