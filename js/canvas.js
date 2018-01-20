@@ -12,6 +12,15 @@ var results = parseInt(localStorage["hivi_max_entries"]);
 var blackList = JSON.parse(localStorage["hivi_blacklist_items"]).items;
 //done
 
+//hide time selector
+function hideTimeSelectors(){
+    document.getElementsByClassName("textTimeSelector")[0].removeChild(document.getElementsByClassName("textTimeSelector")[0].children[1]);
+    document.getElementsByClassName("textTimeSelector")[0].removeChild(document.getElementsByClassName("textTimeSelector")[0].children[0]);
+    document.getElementsByClassName("dateTimeSelector")[0].removeChild(document.getElementsByClassName("dateTimeSelector")[0].children[1]);
+    document.getElementsByClassName("dateTimeSelector")[0].removeChild(document.getElementsByClassName("dateTimeSelector")[0].children[0]);
+}
+//done
+
 //hide context menu
 window.addEventListener("click", function() {
     if(menuDisplayed == true){
@@ -57,106 +66,14 @@ function extractRootDomain(url) {
     return domain;
 }
 
-//HISTORY - START
-function checkIntersection(list1, list2) {
-    for(var i = 0; i < list1.length; i++) {
-        for(var j = 0; j < list2.length; j++) {
-            if(list1[i] === list2[j]){
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-function getPaths(he1, he2) {
-    var url1 = {"url": he1.elem.url};
-    var url2 = {"url": he2.elem.url};
-    if(!(url1.url == url2.url)) {
-        chrome.history.getVisits(url1, function (stPage) {
-            var firstArray = [];
-            for (var i = 0; i < stPage.length; i++) {
-                if (!(stPage[i].visitId === "0")) {
-                    firstArray.push(stPage[i].visitId);
-                }
-            }
-            chrome.history.getVisits(url2, function (ndPage) {
-                var secondArray = [];
-                for (var j = 0; j < ndPage.length; j++) {
-                    if (!(ndPage[j].referringVisitId === "0")) {
-                        secondArray.push(ndPage[j].referringVisitId);
-                    }
-                }
-                if (checkIntersection(firstArray, secondArray)) {
-                    links.push(
-                        {
-                            source: he1.elem.url,
-                            target: he2.elem.url,
-                            type: "arrow",
-                            s_title: he1.elem.title,
-                            t_title: he2.elem.title
-                        });
-                }
-            });
-        });
-    }
-}
-
-function limitSearchesForArrow(list, element, start) {
-    for (var j = list.length - 1; j > start; j--) {
-        getPaths(list[j], element);
-    }
-    links.push(
-        {
-            source: element.elem.url,
-            target: element.elem.url,
-            type: "none",
-            s_title: element.elem.title,
-            t_title: element.elem.title
-        });
-}
-
-function triggerHistoryRepresentation(startDate,endDate,max_entries,blacklist) {
-    chrome.history.search({text: '', maxResults: max_entries, startTime:startDate, endTime:endDate}, function (data) {
-        urls = [];
-        links = [];
-        nodes = {};
-        data.forEach(function (page) {
-            if(!isBlackListed(blacklist, page.url)) {
-                var historyElement = {};
-                historyElement.elem = page;
-                urls.push(historyElement);
-            }
-        });
-        for (var i = 0; i < urls.length; i++) {
-            limitSearchesForArrow(urls, urls[i], 0);
-        }
-
-    });
-}
-
-//main function to generate a graph
-function generateHistoryGraph(relink) {
-    if(relink){
-        links.forEach(function (link) {
-            link.source = nodes[link.source] || (nodes[link.source] =
-                {
-                    name: link.source,
-                    title: link.s_title
-                });
-            link.target = nodes[link.target] || (nodes[link.target] =
-                {
-                    name: link.target,
-                    title: link.t_title
-                });
-        });
-    }
+//base representation for all sources, includes styles used
+function baseRepresentation(nodes_list,links_list){
     var width = 960;
     var height = 450;
 
     var force = d3.layout.force()
-        .nodes(d3.values(nodes))
-        .links(links)
+        .nodes(d3.values(nodes_list))
+        .links(links_list)
         .size([width, height])
         .linkDistance(100)
         .charge(-200)
@@ -222,19 +139,6 @@ function generateHistoryGraph(relink) {
     circle.append("desc")
         .text(function(d) { return d.name; });
 
-    //add context menu on circle nodes
-    circle.on("contextmenu",function(d){
-        d3.event.preventDefault();
-        var left = d3.event.clientX;
-        var top = d3.event.clientY;
-        menuBox = window.document.querySelector(".menu");
-        menuBox.style.left = left + "px";
-        menuBox.style.top = top + "px";
-        menuBox.style.display = "block";
-        menuDisplayed = true;
-        selectedNode = d.name;
-    });
-
     function tick() {
         path.attr("d", linkArc);
         circle.attr("cx", function(d) { return d.x = Math.max(20, Math.min(width - 20, d.x)); })
@@ -252,8 +156,129 @@ function generateHistoryGraph(relink) {
     function transform(d) {
         return "translate(" + d.x + "," + d.y + ")";
     }
+
+    var svg_object = {
+        circle : circle,
+        path : path,
+        text : text,
+        svg : svg
+    };
+    return svg_object;
+}
+//done
+
+
+//HISTORY - START
+function checkIntersection(list1, list2) {
+    for(var i = 0; i < list1.length; i++) {
+        for(var j = 0; j < list2.length; j++) {
+            if(list1[i] === list2[j]){
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
+function getPaths(he1, he2) {
+    var url1 = {"url": he1.elem.url};
+    var url2 = {"url": he2.elem.url};
+    if(!(url1.url == url2.url)) {
+        chrome.history.getVisits(url1, function (stPage) {
+            var firstArray = [];
+            for (var i = 0; i < stPage.length; i++) {
+                if (!(stPage[i].visitId === "0")) {
+                    firstArray.push(stPage[i].visitId);
+                }
+            }
+            chrome.history.getVisits(url2, function (ndPage) {
+                var secondArray = [];
+                for (var j = 0; j < ndPage.length; j++) {
+                    if (!(ndPage[j].referringVisitId === "0")) {
+                        secondArray.push(ndPage[j].referringVisitId);
+                    }
+                }
+                if (checkIntersection(firstArray, secondArray)) {
+                    links.push(
+                        {
+                            source: he1.elem.url,
+                            target: he2.elem.url,
+                            type: "arrow",
+                            s_title: he1.elem.title,
+                            t_title: he2.elem.title
+                        });
+                }
+            });
+        });
+    }
+}
+
+function limitSearchesForArrow(list, element, start) {
+    for (var j = list.length - 1; j > start; j--) {
+        getPaths(list[j], element);
+    }
+    links.push(
+        {
+            source: element.elem.url,
+            target: element.elem.url,
+            type: "none",
+            s_title: element.elem.title,
+            t_title: element.elem.title
+        });
+}
+
+function triggerHistoryRepresentation(startDate,endDate,max_entries,blacklist) {
+    chrome.history.search({text: '', maxResults: max_entries, startTime:startDate, endTime:endDate}, function (data) {
+        var urls = [];
+        links = [];
+        nodes = {};
+        data.forEach(function (page) {
+            if(!isBlackListed(blacklist, page.url) && (extractHostname(page.url) != extractHostname(chrome.extension.getURL("")))) {
+                var historyElement = {};
+                historyElement.elem = page;
+                urls.push(historyElement);
+            }
+        });
+        for (var i = 0; i < urls.length; i++) {
+            limitSearchesForArrow(urls, urls[i], 0);
+        }
+
+    });
+}
+
+//main function to generate a graph used in history generation and pocket generation
+function generateHistoryGraph(relink) {
+    if(relink){
+        links.forEach(function (link) {
+            link.source = nodes[link.source] || (nodes[link.source] =
+                {
+                    name: link.source,
+                    title: link.s_title
+                });
+            link.target = nodes[link.target] || (nodes[link.target] =
+                {
+                    name: link.target,
+                    title: link.t_title
+                });
+        });
+    }
+    var svgObj = baseRepresentation(nodes,links);
+    var circle = svgObj.circle;
+
+    //add context menu on circle nodes
+    circle.on("contextmenu",function(d){
+        d3.event.preventDefault();
+        var left = d3.event.clientX;
+        var top = d3.event.clientY;
+        menuBox = window.document.querySelector(".menu");
+        menuBox.style.left = left + "px";
+        menuBox.style.top = top + "px";
+        menuBox.style.display = "block";
+        menuDisplayed = true;
+        selectedNode = d.name;
+    });
+}
+//done
 
 //listeners for context menu
 function historyMenu(){
@@ -325,20 +350,22 @@ function displayHistory() {
 
 //BOOKMARKS - START
 
-function generateLinksFromBookmarks(node) {
+function generateLinksFromBookmarks(node,blacklist) {
     if(node.hasOwnProperty("children")) {
         for(var i = 0; i < node.children.length; i++) {
-            links_backup.push(
-                {
-                    source : node.url || node.title,
-                    target : node.children[i].url || node.children[i].title,
-                    type : "arrow",
-                    s_title : node.title || "no title",
-                    t_title : node.children[i].title || "no title",
-                    id : node.children[i].id,
-                    parentId : node.children[i].parentId
-                });
-            generateLinksFromBookmarks(node.children[i]);
+            if(!isBlackListed(blacklist, node.children[i].url)) {
+                links_backup.push(
+                    {
+                        source: node.url || node.title,
+                        target: node.children[i].url || node.children[i].title,
+                        type: "arrow",
+                        s_title: node.title || "no title",
+                        t_title: node.children[i].title || "no title",
+                        id: node.children[i].id,
+                        parentId: node.children[i].parentId
+                    });
+                generateLinksFromBookmarks(node.children[i],blacklist);
+            }
         }
     }
 
@@ -387,15 +414,16 @@ function removeChildrenByParentId(id) {
         }
     }
 }
-function triggerBookmarksRepresentation() {
+function triggerBookmarksRepresentation(blacklist) {
     links = [];
     links_backup = [];
     nodes ={};
     chrome.bookmarks.getTree(function(data) {
         for(var i = 0; i < data[0].children.length; i++) {
-            generateLinksFromBookmarks(data[0].children[i]);
+            generateLinksFromBookmarks(data[0].children[i],blacklist);
         }
-
+        startingRepresentation();
+        generateBookmarksGraph(true);
     });
 }
 function linksStateReset(list) {
@@ -435,76 +463,8 @@ function generateBookmarksGraph(relink) {
                     folder:(link.target == extractHostname(link.target)? 1 : 0), expanded:0 });
         });
     }
-    var width = 960;
-    var height = 450;
-
-    var force = d3.layout.force()
-        .nodes(d3.values(nodes))
-        .links(links)
-        .size([width, height])
-        .linkDistance(100)
-        .charge(-200)
-        .on("tick", tick)
-        .start();
-
-    var svg = d3.select(".GraphContainer").append("svg")
-        .attr("id","my_svg")
-        .attr("viewBox","0 0 960 450")
-        .attr("preserveAspectRatio","xMidYMid meet");
-
-    svg.append("defs").selectAll("marker")
-        .data(["arrow"])
-        .enter().append("marker")
-        .attr("id", function (d) {
-            return d;
-        })
-        .attr("viewBox", "0 -5 10 10")
-        .attr("refX", 30)
-        .attr("refY", -3.5)
-        .attr("markerWidth", 6)
-        .attr("markerHeight", 6)
-        .attr("orient", "auto")
-        .append("path")
-        .attr("d", "M0,-5L10,0L0,5");
-
-    var path = svg.append("g").selectAll("path")
-        .data(force.links())
-        .enter().append("path")
-        .attr("class", function (d) {
-            return "link " + d.type;
-        })
-        .attr("marker-end", function (d) {
-            return "url(#" + d.type + ")";
-        });
-
-    var circle = svg.append("g").selectAll("circle")
-        .data(force.nodes())
-        .enter().append("circle")
-        .attr("r", 20)
-        .call(force.drag);
-
-    var text = svg.append("g").selectAll("text")
-        .data(force.nodes())
-        .enter().append("text")
-        .attr("x", 0)
-        .attr("y", ".3em")
-        .attr("text-anchor","middle")
-        .attr("alignment-baseline","middle")
-        .text(function (d) {
-            return extractRootDomain(d.name);
-        });
-
-    //add styles to nodes
-    text.attr("style", "text-shadow:0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff; font:10px sans-serif;");
-    circle.attr("style","fill:#cc4b45; stroke:#333; stroke-width:1.5px;");
-    path.attr("style","fill:none; stroke:#666; stroke-width:1.5px;");
-
-    //add metadata to circles
-    circle.append("title")
-        .text(function(d) { return d.title; });
-
-    circle.append("desc")
-        .text(function(d) { return d.name; });
+    var svgObj = baseRepresentation(nodes,links);
+    var circle = svgObj.circle;
 
     //add context menu on circle nodes
     circle.on("contextmenu",function(d){
@@ -545,25 +505,8 @@ function generateBookmarksGraph(relink) {
         }
 
     });
-
-    function tick() {
-        path.attr("d", linkArc);
-        circle.attr("cx", function(d) { return d.x = Math.max(20, Math.min(width - 20, d.x)); })
-            .attr("cy", function(d) { return d.y = Math.max(20, Math.min(height - 20, d.y)); });
-        text.attr("transform", transform);
-    }
-
-    function linkArc(d) {
-        var dx = d.target.x - d.source.x,
-            dy = d.target.y - d.source.y,
-            dr = Math.sqrt(dx * dx + dy * dy);
-        return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
-    }
-
-    function transform(d) {
-        return "translate(" + d.x + "," + d.y + ")";
-    }
 }
+
 function bookmarksMenu() {
     document.getElementById("menu").addEventListener("click",function(e) {
         if(e.target.dataset.action === "goto") {
@@ -589,13 +532,78 @@ function bookmarksMenu() {
     });
 }
 function displayBookmarks() {
+    hideTimeSelectors();
     bookmarksMenu();
-    triggerBookmarksRepresentation();
-    setTimeout(function() {
-        startingRepresentation();
-        generateBookmarksGraph(true);}, 2000);
+    triggerBookmarksRepresentation(blackList);
 }
 //BOOKMARKS - END
+
+
+//POCKET - START
+
+function generateLinksFromPocketBookmarks(urls_list){
+    var links_list = [];
+    for(var i = 0; i < urls_list.length; i++) {
+        for(var j = i + 1; j < urls_list.length; j++) {
+            if(extractRootDomain(urls_list[i].url) === extractRootDomain(urls_list[j].url)) {
+                links_list.push(
+                    {
+                        source: urls_list[i].url,
+                        target: urls_list[j].url,
+                        type: "arrow",
+                        s_title: urls_list[i].title,
+                        t_title: urls_list[j].title
+                    });
+            }
+        }
+        links_list.push(
+            {
+                source: urls_list[i].url,
+                target: urls_list[i].url,
+                type: "none",
+                s_title: urls_list[i].title,
+                t_title: urls_list[i].title
+            });
+    }
+    return links_list;
+}
+function triggerPocketRepresentation(blacklist) {
+        var pocket_bookmarks = JSON.parse(localStorage["hivi_pocket"]);
+        var urls = [];
+        links = [];
+        nodes = {};
+        for(var i in pocket_bookmarks) {
+            urls.push(
+                {
+                    url : pocket_bookmarks[i].resolved_url,
+                    title : pocket_bookmarks[i].resolved_title
+                });
+        }
+        links = generateLinksFromPocketBookmarks(urls);
+        generateHistoryGraph(true);
+
+}
+
+function pocketMenu(){
+    document.getElementById("menu").addEventListener("click",function(e) {
+        if (e.target.dataset.action == "goto") {
+            var win = window.open(selectedNode, '_blank');
+            win.focus();
+        }
+    });
+}
+
+function hideUnusedMenuEntriesForPocket(){
+    document.getElementById("menu").removeChild(document.getElementById("menu").children[1]);
+}
+function displayPocket(){
+    hideTimeSelectors();
+    pocketMenu();
+    hideUnusedMenuEntriesForPocket();
+    triggerPocketRepresentation();
+}
+//POCKET - END
+
 
 // SOURCE WORKER
 if(source === "history") {
@@ -603,7 +611,7 @@ if(source === "history") {
 } else if(source === "bookmarks") {
     displayBookmarks();
 } else if(source === "pocket") {
-
+    displayPocket();
 } else {
     //default is history (for corrupted data in localStorage)
     displayHistory();
