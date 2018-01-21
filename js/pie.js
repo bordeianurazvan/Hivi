@@ -5,6 +5,12 @@ var duPie = 0;
 
 var bookmarkEntries = [];
 var basicBookmarksStrings = [];
+var bookmarkUrls = [];
+var folder_list = [];
+var bookmarkFoldersStrings = [];
+var fuPie = 0;
+
+
 //settings
 var source = localStorage["hivi_data_source"]; // get data source from settings
 var results = parseInt(localStorage["hivi_max_entries"]); // get the displayed links number from settings
@@ -480,10 +486,8 @@ var color = d3.scale.category20c()
 
 function domainData (){
     var labels = color.domain();
-    //var labels = historyDomainEntries;
     return labels.map(function(label){
         return { label: label, value: getValueForALabel(label) }
-        //return { label: label, value: Math.random() }
 
     })
     .sort(function(a,b) {
@@ -500,9 +504,7 @@ function urlsDataForADomain (domain){
             ,"#ff8c66", "#cc3300", "#669999", "#ff6600", "#ff99cc", "#cc0066", "#4d0026","#ff80ff", "#990099", "#ff0080", "#660033", "#bb99ff", "#7733ff", "#c2c2d6",
             "#5c5c8a", "#ccffff"]);
     var urlLabels = color.domain();
-    console.log(urlLabels);
     return urlLabels.map(function(urlLabel){
-        //return {label: getTitleForUrl(urlLabel), value: Math.random()}
         return {label: urlLabel, value: 1}
     });
 }
@@ -522,6 +524,7 @@ function mergeWithFirstEqualZero(first, second){
 }
 
 function change(data) {
+    console.log(data);
     var duration = 2000;
     var data0 = svg.select(".slices").selectAll("path.slice")
         .data().map(function(d) { return d.data });
@@ -529,11 +532,6 @@ function change(data) {
     var was = mergeWithFirstEqualZero(data, data0);
     var is = mergeWithFirstEqualZero(data0, data);
 
-   /* var actualCenter = svg.select(".center");
-    console.log(actualCenter);
-    if(actualCenter != null){
-        actualCenter.remove();
-    }*/
 
 
     /* ------- SLICE ARCS -------*/
@@ -715,38 +713,59 @@ function change(data) {
 };
 }
 
-// SOURCE WORKER
-if(source === "history") {
-    triggerRepresentationByHistory(start,end,results,blackList);
-} else if(source === "bookmarks") {
-    triggerRepresentationByBookmark();
-} else if(source === "pocket") {
-    triggerRepresentationByPocket();
-
-} else {
-    //default is history (for corrupted data in localStorage)
-    triggerRepresentationByHistory(start,end,results,blackList);
-}
+//Done History
 
 
 //Start Bookmarks
 
-function triggerRepresentationByBookmark(){
 
-    chrome.bookmarks.getTree(function(data){
-        for(var i = 0; i < data[0].children.length; i++) {
-            bookmarkEntries.push(data[0].children[i]);
-            basicBookmarksStrings.push(data[0].children[i].title);
+function getFoldersFromBookmarks(folders, key, data){
+    if(data.hasOwnProperty("children")) {
+        for (var i = 0; i < data.children.length; i++) {
+            getFoldersFromBookmarks(folders, data.title, data.children[i]);
         }
+    }else{
+        if(data.url != null) {
+            if (folders[key] != null)
+                folders[key].push({
+                    url:data.url,
+                    title:data.title
+                });
+            else{
+                folders[key] = [];
+                folders[key].push({
+                    url:data.url,
+                    title:data.title
+                });
+            }
+        }
+    }
+}
 
-    });
-    console.log(bookmarkEntries);
-    setTimeout(function(){drawPieByBookmarks();},1);
+function getTitleForAnUrl(url){
+    for (key in folder_list){
+        for (var i =0; i< folder_list[key].length;i++){
+            if (folder_list[key][i].url === url){
+                return folder_list[key][i].title;
+            }
+        }
+    }
 }
 
 
+function triggerRepresentationByBookmark(){
 
-//Done Bookmarks
+    chrome.bookmarks.getTree(function(data){
+        folder_list = {};
+
+        getFoldersFromBookmarks(folder_list, "Bookmarks bar", data[0]);
+        for (key in folder_list){
+            bookmarkFoldersStrings.push(key);
+        }
+        drawPieByBookmarks();
+    });
+}
+
 
 function drawPieByBookmarks(){
     var svg = d3.select(".PieContainer")
@@ -794,8 +813,10 @@ function drawPieByBookmarks(){
 
     var key = function(d){ return d.data.label; };
 
+
+
     var color = d3.scale.category20c()
-        .domain(basicBookmarksStrings)
+        .domain(bookmarkFoldersStrings)
         .range(["#1a75ff", "#9999ff", "#ccccff", "#80dfff", "#00ace6", "#80ffbf", "#00cc66","#004d26", "#d9ff66", "#99cc00", "#ffff80", "#ffff00", "#808000", "#ff9900"
             ,"#ff8c66", "#cc3300", "#669999", "#ff6600", "#ff99cc", "#cc0066", "#4d0026","#ff80ff", "#990099", "#ff0080", "#660033", "#bb99ff", "#7733ff", "#c2c2d6",
             "#5c5c8a", "#ccffff"]);
@@ -804,26 +825,28 @@ function drawPieByBookmarks(){
         var labels = color.domain();
         return labels.map(function(label){
             return { label: label, value: 1 }
-            //return { label: label, value: Math.random() }
 
         })
-        /* .sort(function(a,b) {
-             return d3.descending(a.label, b.label);
-         });*/
+         .sort(function(a,b) {
+            return d3.descending(a.label, b.label);
+        });
     }
 
     change(domainData());
 
-    function urlsDataForADomain (domain){
+    function urlsForAFolder(folder){
+        var urls = [];
+        for (var i = 0; i< folder_list[folder].length;i++){
+            urls.push(folder_list[folder][i].url);
+        }
+
         var color = d3.scale.category20c()
-            .domain(getUrlsForALabelStrings(domain))
+            .domain(urls)
             .range(["#1a75ff", "#9999ff", "#ccccff", "#80dfff", "#00ace6", "#80ffbf", "#00cc66","#004d26", "#d9ff66", "#99cc00", "#ffff80", "#ffff00", "#808000", "#ff9900"
                 ,"#ff8c66", "#cc3300", "#669999", "#ff6600", "#ff99cc", "#cc0066", "#4d0026","#ff80ff", "#990099", "#ff0080", "#660033", "#bb99ff", "#7733ff", "#c2c2d6",
                 "#5c5c8a", "#ccffff"]);
         var urlLabels = color.domain();
-        console.log(urlLabels);
         return urlLabels.map(function(urlLabel){
-            //return {label: getTitleForUrl(urlLabel), value: Math.random()}
             return {label: urlLabel, value: 1}
         });
     }
@@ -846,15 +869,10 @@ function drawPieByBookmarks(){
         var duration = 2000;
         var data0 = svg.select(".slices").selectAll("path.slice")
             .data().map(function(d) { return d.data });
+
         if (data0.length == 0) data0 = data;
         var was = mergeWithFirstEqualZero(data, data0);
         var is = mergeWithFirstEqualZero(data0, data);
-
-        /* var actualCenter = svg.select(".center");
-         console.log(actualCenter);
-         if(actualCenter != null){
-             actualCenter.remove();
-         }*/
 
 
         /* ------- SLICE ARCS -------*/
@@ -870,10 +888,10 @@ function drawPieByBookmarks(){
                 this._current = d;
             });
 
-       /* slice.on("click",function(d){
-            if (duPie == 0) {
-                var x = urlsDataForADomain(d.data.label);
-                duPie = 1;
+        slice.on("click",function(d){
+            if (fuPie == 0) {
+                var x = urlsForAFolder(d.data.label);
+                fuPie = 1;
                 change(x);
             }
             else
@@ -882,7 +900,7 @@ function drawPieByBookmarks(){
                 win.focus();
             }
 
-        });*/
+        });
 
         slice = svg.select(".slices").selectAll("path.slice")
             .data(pie(is), key);
@@ -914,15 +932,14 @@ function drawPieByBookmarks(){
             .append("text")
             .attr("dy", ".35em")
             .style("opacity", 0)
-          /*  .text(function(d) {
-                var x = getTitleForUrl(d.data.label);
-                if (x.length == 0){
-                    return extractRootDomain(d.data.label);
-                }
-                return x;
-            })*/
             .text(function(d){
-                return d.data.label;
+                if (fuPie == 0){
+                    return d.data.label;
+                }
+                else{
+                   return getTitleForAnUrl(d.data.label);
+                }
+
             })
             .each(function(d) {
                 this._current = d;
@@ -1017,10 +1034,10 @@ function drawPieByBookmarks(){
             .attr("r", radius  * 0.3)
             .style("fill", "#E7E7E7")
             .on("click",function(){
-                if(duPie == 0){
+                if(fuPie == 0){
                 }
                 else{
-                    duPie = 0;
+                    fuPie = 0;
                     change(domainData());
                 }
 
@@ -1031,11 +1048,27 @@ function drawPieByBookmarks(){
             .style('font-weight', 'bold')
             .style('font-size','15px')
             .style("opacity", function() {
-                return duPie ? 1:0;
+                return fuPie ? 1:0;
             })
             .text("Go Back");
 
 
     };
 
+}
+
+//Done Bookmarks
+
+
+// SOURCE WORKER
+if(source === "history") {
+    triggerRepresentationByHistory(start,end,results,blackList);
+} else if(source === "bookmarks") {
+    triggerRepresentationByBookmark();
+} else if(source === "pocket") {
+    triggerRepresentationByPocket();
+
+} else {
+    //default is history (for corrupted data in localStorage)
+    triggerRepresentationByHistory(start,end,results,blackList);
 }
