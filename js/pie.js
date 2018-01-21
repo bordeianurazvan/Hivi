@@ -3,9 +3,6 @@ var historyUrlEntries = [];
 var historyDomainEntries = [];
 var duPie = 0;
 
-var bookmarkEntries = [];
-var basicBookmarksStrings = [];
-var bookmarkUrls = [];
 var folder_list = [];
 var bookmarkFoldersStrings = [];
 var fuPie = 0;
@@ -29,7 +26,6 @@ function getBookmarksFromPocket(){
     for (var i in pocketObject){
         bookmarksFromPocket.push(pocketObject[i]);
     }
-    console.log(pocketObject);
 }
 
 
@@ -390,7 +386,7 @@ function getUrlsForALabel(label){
             urls.push(urlDetails);
         }
     }
-    console.log(urls);
+
     return urls;
 }
 
@@ -524,7 +520,7 @@ function mergeWithFirstEqualZero(first, second){
 }
 
 function change(data) {
-    console.log(data);
+
     var duration = 2000;
     var data0 = svg.select(".slices").selectAll("path.slice")
         .data().map(function(d) { return d.data });
@@ -812,16 +808,19 @@ function drawPieByBookmarks(){
     svg.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
 
     var key = function(d){ return d.data.label; };
-
-
-
     var color = d3.scale.category20c()
         .domain(bookmarkFoldersStrings)
         .range(["#1a75ff", "#9999ff", "#ccccff", "#80dfff", "#00ace6", "#80ffbf", "#00cc66","#004d26", "#d9ff66", "#99cc00", "#ffff80", "#ffff00", "#808000", "#ff9900"
             ,"#ff8c66", "#cc3300", "#669999", "#ff6600", "#ff99cc", "#cc0066", "#4d0026","#ff80ff", "#990099", "#ff0080", "#660033", "#bb99ff", "#7733ff", "#c2c2d6",
             "#5c5c8a", "#ccffff"]);
 
+
     function domainData (){
+        var color = d3.scale.category20c()
+            .domain(bookmarkFoldersStrings)
+            .range(["#1a75ff", "#9999ff", "#ccccff", "#80dfff", "#00ace6", "#80ffbf", "#00cc66","#004d26", "#d9ff66", "#99cc00", "#ffff80", "#ffff00", "#808000", "#ff9900"
+                ,"#ff8c66", "#cc3300", "#669999", "#ff6600", "#ff99cc", "#cc0066", "#4d0026","#ff80ff", "#990099", "#ff0080", "#660033", "#bb99ff", "#7733ff", "#c2c2d6",
+                "#5c5c8a", "#ccffff"]);
         var labels = color.domain();
         return labels.map(function(label){
             return { label: label, value: 1 }
