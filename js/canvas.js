@@ -5,6 +5,7 @@ var menuDisplayed = false;
 var menuBox = null;
 var selectedNode = null;
 var selectedId = null;
+var checks = 0;
 
 //settings
 var source = localStorage["hivi_data_source"];
@@ -207,14 +208,16 @@ function getPaths(he1, he2) {
                             s_title: he1.elem.title,
                             t_title: he2.elem.title
                         });
+
                 }
+                checks--;
             });
         });
     }
 }
 
 function limitSearchesForArrow(list, element, start) {
-    for (var j = list.length - 1; j > start; j--) {
+    for (var j = list.length - 1; j >= start; j--) {
         getPaths(list[j], element);
     }
     links.push(
@@ -232,6 +235,7 @@ function triggerHistoryRepresentation(startDate,endDate,max_entries,blacklist) {
         var urls = [];
         links = [];
         nodes = {};
+
         data.forEach(function (page) {
             if(!isBlackListed(blacklist, page.url) && (extractHostname(page.url) != extractHostname(chrome.extension.getURL("")))) {
                 var historyElement = {};
@@ -242,6 +246,17 @@ function triggerHistoryRepresentation(startDate,endDate,max_entries,blacklist) {
         for (var i = 0; i < urls.length; i++) {
             limitSearchesForArrow(urls, urls[i], 0);
         }
+        //setTimeout(function(){ console.log(checks); }, 1000);
+
+        checks = (urls.length * (urls.length-1));
+        var intervalId = null;
+        var intervalFunction = function(){
+            if(checks <= 0) {
+                clearInterval(intervalId);
+                generateHistoryGraph(true);
+            }
+        };
+        intervalId = setInterval(intervalFunction, 300);
 
     });
 }
@@ -326,14 +341,12 @@ function displayHistory() {
     var end = (new Date(endDate)).setHours(23,59,59,999);
     //end
     triggerHistoryRepresentation(start,end,results,blackList);
-    setTimeout(function(){ generateHistoryGraph(true) }, 2000);
     document.getElementById("start").addEventListener("change",function(e) {
         start = (new Date(e.srcElement.value)).setHours(0,0,0,0);
         var s = d3.selectAll('svg');
         s.selectAll("*").remove();
         s = s.remove();
         triggerHistoryRepresentation(start,end,results,blackList);
-        setTimeout(function(){ generateHistoryGraph(true) }, 2000);
     });
     document.getElementById("end").addEventListener("change",function(e) {
         end = (new Date(e.srcElement.value)).setHours(23,59,59,999);
@@ -341,7 +354,6 @@ function displayHistory() {
         s.selectAll("*").remove();
         s = s.remove();
         triggerHistoryRepresentation(start,end,results,blackList);
-        setTimeout(function(){ generateHistoryGraph(true) }, 2000);
     })
 }
 //HISTORY - END
@@ -465,7 +477,14 @@ function generateBookmarksGraph(relink) {
     }
     var svgObj = baseRepresentation(nodes,links);
     var circle = svgObj.circle;
+    //extra styles
 
+    circle.style("fill", function(d){
+       if (d.folder == 1){
+           return "#cc4b45";
+       }
+       return "#FAF87B";
+    });
     //add context menu on circle nodes
     circle.on("contextmenu",function(d){
         d3.event.preventDefault();
