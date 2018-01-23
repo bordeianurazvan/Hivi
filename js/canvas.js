@@ -6,6 +6,7 @@ var menuBox = null;
 var selectedNode = null;
 var selectedId = null;
 var checks = 0;
+var intervalId = null;
 
 //settings
 var source = localStorage["hivi_data_source"];
@@ -19,6 +20,7 @@ function hideTimeSelectors(){
     document.getElementsByClassName("textTimeSelector")[0].removeChild(document.getElementsByClassName("textTimeSelector")[0].children[0]);
     document.getElementsByClassName("dateTimeSelector")[0].removeChild(document.getElementsByClassName("dateTimeSelector")[0].children[1]);
     document.getElementsByClassName("dateTimeSelector")[0].removeChild(document.getElementsByClassName("dateTimeSelector")[0].children[0]);
+    document.getElementsByClassName("dateTrigger")[0].removeChild(document.getElementsByClassName("dateTrigger")[0].children[0]);
 }
 //done
 
@@ -249,11 +251,17 @@ function triggerHistoryRepresentation(startDate,endDate,max_entries,blacklist) {
         //setTimeout(function(){ console.log(checks); }, 1000);
 
         checks = (urls.length * (urls.length-1));
-        var intervalId = null;
+
+        clearInterval(intervalId);
         var intervalFunction = function(){
             if(checks <= 0) {
                 clearInterval(intervalId);
+                var s = d3.selectAll('svg');
+                s.selectAll("*").remove();
+                s = s.remove();
+                document.getElementById("dateSubmit").disabled = false;
                 generateHistoryGraph(true);
+
             }
         };
         intervalId = setInterval(intervalFunction, 300);
@@ -341,20 +349,12 @@ function displayHistory() {
     var end = (new Date(endDate)).setHours(23,59,59,999);
     //end
     triggerHistoryRepresentation(start,end,results,blackList);
-    document.getElementById("start").addEventListener("change",function(e) {
-        start = (new Date(e.srcElement.value)).setHours(0,0,0,0);
-        var s = d3.selectAll('svg');
-        s.selectAll("*").remove();
-        s = s.remove();
+    document.getElementById("dateSubmit").addEventListener("click",function(e){
+        document.getElementById("dateSubmit").disabled = true;
+        start = (new Date(document.getElementById("start").value)).setHours(0,0,0,0);
+        end = (new Date(document.getElementById("end").value)).setHours(23,59,59,999);
         triggerHistoryRepresentation(start,end,results,blackList);
     });
-    document.getElementById("end").addEventListener("change",function(e) {
-        end = (new Date(e.srcElement.value)).setHours(23,59,59,999);
-        var s = d3.selectAll('svg');
-        s.selectAll("*").remove();
-        s = s.remove();
-        triggerHistoryRepresentation(start,end,results,blackList);
-    })
 }
 //HISTORY - END
 
