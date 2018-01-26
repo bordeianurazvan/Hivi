@@ -2,7 +2,6 @@
 //settings
 var source = localStorage["hivi_data_source"];
 var blackList = JSON.parse(localStorage["hivi_blacklist_items"]).items;
-var links_list = [];
 if(localStorage["hostname"] == null){
     localStorage["hostname"] = "";
 }
@@ -52,7 +51,7 @@ function httpGetAsync(theUrl, callback)
             var node = document.getElementById("thumbnail");
 
             var table = document.createElement("table");
-            table.setAttribute("style","border:2px solid black; display: inline-block;");
+            table.setAttribute("style","border-radius: 10px; display: inline-block; background-color: black; margin: 5px");
 
             //url row
             var firstRow = document.createElement("tr");
@@ -65,6 +64,7 @@ function httpGetAsync(theUrl, callback)
             var text = document.createTextNode(theUrl);
             if(host == "") {
                 actualUrl.setAttribute("href",page_url);
+                actualUrl.setAttribute("style","color: white;");
                 actualUrl.addEventListener("click", function () {
                     localStorageGetsUrl(theUrl);
                 })
@@ -84,7 +84,7 @@ function httpGetAsync(theUrl, callback)
             //image row
             var secondRow = document.createElement("tr");
             var imageNode = document.createElement("td");
-            imageNode.setAttribute("style","border:2px solid black;");
+            imageNode.setAttribute("style","border-radius: 10px;");
             var imgUrl = document.createElement("a");
             if(host == ""){
                 imgUrl.setAttribute("href",page_url);
@@ -97,6 +97,7 @@ function httpGetAsync(theUrl, callback)
             }
             var img = document.createElement("img");
             img.setAttribute("src","data:image/jpeg;base64,"+image3);
+            img.setAttribute("style","border-radius: 10px;");
             imgUrl.appendChild(img);
 
             imageNode.appendChild(imgUrl);
@@ -151,6 +152,7 @@ function triggerRepresentationByHistory(startDate,endDate,blacklist) {
             localStorage["hostname"] = "";
         }
     });
+    document.getElementById("dateSubmit").disabled = false;
 }
 
 function triggerReprezentationByPocket(blacklist,pocketObject){
@@ -199,7 +201,7 @@ function displayfolder(name){
     var node = document.getElementById("thumbnail");
 
     var table = document.createElement("table");
-    table.setAttribute("style","border:2px solid black; display: inline-block;");
+    table.setAttribute("style","border-radius: 10px; display: inline-block; background-color: black; margin: 5px");
 
     //url row
     var firstRow = document.createElement("tr");
@@ -211,6 +213,7 @@ function displayfolder(name){
     var actualUrl = document.createElement("a");
     var text = document.createTextNode(name);
     actualUrl.setAttribute("href","thumbnails.html");
+    actualUrl.setAttribute("style","color: white;");
     actualUrl.addEventListener("click", function () {
         localStorageGetsUrl(name);
     });
@@ -224,12 +227,13 @@ function displayfolder(name){
     //image row
     var secondRow = document.createElement("tr");
     var imageNode = document.createElement("td");
-    imageNode.setAttribute("style","border:2px solid black;");
+    imageNode.setAttribute("style","border-radius: 10px;");
     var imgUrl = document.createElement("a");
     imgUrl.setAttribute("href","thumbnails.html");
     imgUrl.addEventListener("click",function() {localStorageGetsUrl(name);});
     var img = document.createElement("img");
     img.setAttribute("src","img/folder.png");
+    img.setAttribute("style","border-radius: 10px;")
     imgUrl.appendChild(img);
 
     imageNode.appendChild(imgUrl);
@@ -263,7 +267,13 @@ function displayHistory(){
     //working with date interval
     var today = new Date();
     var dd = today.getDate();
+    if (dd < 10) {
+        dd = '0' + dd;
+    }
     var mm = today.getMonth()+1; //January is 0!
+    if (mm < 10) {
+        mm = '0' + mm;
+    }
     var yyyy = today.getFullYear();
     var startDate =  "" + yyyy + "-" + mm + "-" + dd;
     var endDate = "" + yyyy + "-" + mm + "-" + dd;
@@ -275,16 +285,13 @@ function displayHistory(){
     if(source == "history"){
         triggerRepresentationByHistory(start,end,blackList);
 
-        document.getElementById("start").addEventListener("change",function(e){
-            start = (new Date(e.srcElement.value)).setHours(0,0,0,0);
-            document.getElementById('thumbnail').innerHTML = "";
+        document.getElementById("dateSubmit").addEventListener("click",function(e){
+            document.getElementById("dateSubmit").disabled = true;
+            start = (new Date(document.getElementById("start").value)).setHours(0,0,0,0);
+            end = (new Date(document.getElementById("end").value)).setHours(23,59,59,999);
+            document.getElementById("thumbnail").innerHTML = "";
             triggerRepresentationByHistory(start,end,blackList);
         });
-        document.getElementById("end").addEventListener("change",function(e){
-            end = (new Date(e.srcElement.value)).setHours(23,59,59,999);
-            document.getElementById('thumbnail').innerHTML = "";
-            triggerRepresentationByHistory(start,end,blackList);
-        })
     }else{
         if(source == "bookmarks"){
             var element = document.getElementById("data");
