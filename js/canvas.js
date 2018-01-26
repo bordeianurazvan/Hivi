@@ -592,11 +592,13 @@ function triggerPocketRepresentation(blacklist) {
         links = [];
         nodes = {};
         for(var i in pocket_bookmarks) {
-            urls.push(
-                {
-                    url : pocket_bookmarks[i].resolved_url,
-                    title : pocket_bookmarks[i].resolved_title
-                });
+            if(!isBlackListed(blacklist, pocket_bookmarks[i].resolved_url)){
+                urls.push(
+                    {
+                        url : pocket_bookmarks[i].resolved_url,
+                        title : pocket_bookmarks[i].resolved_title
+                    });
+            }
         }
         links = generateLinksFromPocketBookmarks(urls);
         generateHistoryGraph(true);
@@ -619,7 +621,7 @@ function displayPocket(){
     hideTimeSelectors();
     pocketMenu();
     hideUnusedMenuEntriesForPocket();
-    triggerPocketRepresentation();
+    triggerPocketRepresentation(blackList);
 }
 //POCKET - END
 
