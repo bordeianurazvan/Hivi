@@ -14,7 +14,7 @@ body{
     display:block;
     border:5px solid black;
     box-sizing: border-box;
-    background-color: peru;
+    background-color: #191919;
 }
 table {
     margin: 0 auto;
