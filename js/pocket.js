@@ -73,7 +73,13 @@ function getPocket() {
             },
             function (redirect_url) {
                 //Get access token
-                get_access_token(consumer_key, request_code);
+                if(chrome.runtime.lastError){
+                    alert("Please try again");
+                }
+                else {
+                    get_access_token(consumer_key, request_code);
+                }
+
             });
 
     }
@@ -84,8 +90,5 @@ function getPocket() {
 
     }
 
-
         import_my_chrome_bookmarks();
-
-
 }
