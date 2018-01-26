@@ -19,6 +19,14 @@ var pocketObject = JSON.parse(localStorage["hivi_pocket"]);
 var bookmarksFromPocket = [];
 var bookmarksFromPocketDomain = [];
 
+function hideTimeSelectors(){
+    document.getElementsByClassName("textTimeSelector")[0].removeChild(document.getElementsByClassName("textTimeSelector")[0].children[1]);
+    document.getElementsByClassName("textTimeSelector")[0].removeChild(document.getElementsByClassName("textTimeSelector")[0].children[0]);
+    document.getElementsByClassName("dateTimeSelector")[0].removeChild(document.getElementsByClassName("dateTimeSelector")[0].children[1]);
+    document.getElementsByClassName("dateTimeSelector")[0].removeChild(document.getElementsByClassName("dateTimeSelector")[0].children[0]);
+    document.getElementsByClassName("dateTrigger")[0].removeChild(document.getElementsByClassName("dateTrigger")[0].children[0]);
+}
+
 //done Settings
 
 //Pocket
@@ -37,6 +45,7 @@ function generateDomainForPocketRepresentation(){
 }
 
 function triggerRepresentationByPocket(){
+    hideTimeSelectors();
     getBookmarksFromPocket();
     generateDomainForPocketRepresentation();
 
@@ -87,6 +96,9 @@ function extractRootDomain(url) {
 
 function triggerRepresentationByHistory(startDate,endDate,max_entries,blacklist) {
     chrome.history.search({text: '', maxResults: max_entries, startTime:startDate, endTime:endDate}, function (data) {
+        historyEntries = [];
+        historyUrlEntries = [];
+        historyDomainEntries = [];
             data.forEach(function(page) {
                 if(!isBlackListed(blacklist,page.url) && (extractHostname(page.url) != extractHostname(chrome.extension.getURL("")))){
 
@@ -120,15 +132,21 @@ document.getElementById("end").value = endDate;
 var start = (new Date(startDate)).setHours(0,0,0,0);
 var end = (new Date(endDate)).setHours(23,59,59,999);
 
+document.getElementById("dateSubmit").addEventListener("click",function(e){
+    start = (new Date(document.getElementById("start").value)).setHours(0,0,0,0);
+    end = (new Date(document.getElementById("end").value)).setHours(23,59,59,999);
+    var s = d3.selectAll('svg');
+    s.selectAll("*").remove();
+    s = s.remove();
+    triggerRepresentationByHistory(start,end,results,blackList);
+});
 
-
-document.getElementById("start").addEventListener("change",function(e){
+/*document.getElementById("start").addEventListener("change",function(e){
     start = (new Date(e.srcElement.value)).setHours(0,0,0,0);
     var s = d3.selectAll('svg');
     s.selectAll("*").remove();
     s = s.remove();
    triggerRepresentationByHistory(start,end,results,blackList);
-   // setTimeout(function(){ triggerRepresentationByHistory(start,end,results,blackList); }, 2000);
 });
 
 document.getElementById("end").addEventListener("change",function(e){
@@ -137,9 +155,7 @@ document.getElementById("end").addEventListener("change",function(e){
     s.selectAll("*").remove();
     s = s.remove();
    triggerRepresentationByHistory(start,end,results,blackList);
-   // setTimeout(function(){triggerRepresentationByHistory(start,end,results,blackList);}, 2000);
-});
-
+});*/
 
 function getUrlsForALabel(label){
     var urls = [];
@@ -226,7 +242,7 @@ function getTitleForAnUrl(url){
 
 
 function triggerRepresentationByBookmark(){
-
+    hideTimeSelectors();
     chrome.bookmarks.getTree(function(data){
         folder_list = {};
 

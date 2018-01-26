@@ -22,8 +22,6 @@ ul {
     float: left;
 }
 
-
-
 .menuEntries{
     float:right;
 
@@ -120,6 +118,7 @@ h2{
     padding:3px 10px;
     margin:5px;
 }
+
 form{
     font-size: 15px;
 }
