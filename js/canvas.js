@@ -72,7 +72,7 @@ function extractRootDomain(url) {
 //base representation for all sources, includes styles used
 function baseRepresentation(nodes_list,links_list){
     var width = 960;
-    var height = 450;
+    var height = 500;
 
     var force = d3.layout.force()
         .nodes(d3.values(nodes_list))
@@ -85,8 +85,8 @@ function baseRepresentation(nodes_list,links_list){
 
     var svg = d3.select(".GraphContainer").append("svg")
         .attr("id","my_svg")
-        .attr("viewBox","0 0 960 450")
-        .attr("preserveAspectRatio","xMidYMid meet");
+        .attr("viewBox","0 0 1000 700")
+        .attr("preserveAspectRatio","xMidYMin meet");
 
     svg.append("defs").selectAll("marker")
         .data(["arrow"])
