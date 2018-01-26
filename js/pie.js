@@ -105,7 +105,13 @@ function triggerRepresentationByHistory(startDate,endDate,max_entries,blacklist)
 
 var today = new Date();
 var dd = today.getDate();
+if (dd < 10) {
+    dd = '0' + dd;
+}
 var mm = today.getMonth()+1; //January is 0!
+if (mm < 10) {
+    mm = '0' + mm;
+}
 var yyyy = today.getFullYear();
 var startDate =  "" + yyyy + "-" + mm + "-" + dd;
 var endDate = "" + yyyy + "-" + mm + "-" + dd;
