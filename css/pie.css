@@ -27,7 +27,7 @@ ul {
 
 .menuEntries{
     float:right;
-
+    height: 26px;
 }
 
 li a {
