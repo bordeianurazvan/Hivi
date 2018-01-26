@@ -53,8 +53,8 @@ li a:hover:not(.active) {
 }
 
 .timeSelector{
-    padding-top: 10px;
-    margin-left:  40%;
+    width:100%;
+    text-align: center;
 
 }
 
@@ -118,6 +118,11 @@ polyline{
     text-align:    center;
     padding:1px 5px;
     margin:5px;
+}
+
+table{
+    display:inline-block;
+    font-size: 13px;
 }
 
 
