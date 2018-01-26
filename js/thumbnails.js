@@ -40,78 +40,81 @@ function httpGetAsync(theUrl, callback)
         page_url = "thumbnails.html";
     }else{
         page_url = theUrl;
+        console.log(page_url);
     }
     xmlHttp.onreadystatechange = function() {
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200){
-            //extract data
-            var dataUri = JSON.parse(xmlHttp.responseText);
-            var image = dataUri.screenshot.data;
-            var image2 = replaceInString(image, "_", "/");
-            var image3 = replaceInString(image2, "-", "+");
-            //main container
-            var node = document.getElementById("thumbnail");
+        if (xmlHttp.readyState === 4){
+            if( xmlHttp.status === 200){
+                //extract data
+                var dataUri = JSON.parse(xmlHttp.responseText);
+                var image = dataUri.screenshot.data;
+                var image2 = replaceInString(image, "_", "/");
+                var image3 = replaceInString(image2, "-", "+");
+                //main container
+                var node = document.getElementById("thumbnail");
 
-            var table = document.createElement("table");
-            table.setAttribute("style","border-radius: 10px; display: inline-block; background-color: black; margin: 5px");
+                var table = document.createElement("table");
+                table.setAttribute("style","border-radius: 10px; display: inline-block; background-color: black; margin: 5px");
 
-            //url row
-            var firstRow = document.createElement("tr");
-            var urlNode = document.createElement("td");
-            urlNode.setAttribute("style","max-width: 40px;" +
-                "    text-overflow: ellipsis;" +
-                "    overflow: hidden;" +
-                "    white-space: nowrap;");
-            var actualUrl = document.createElement("a");
-            var text = document.createTextNode(theUrl);
-            if(host == "") {
-                actualUrl.setAttribute("href",page_url);
+                //url row
+                var firstRow = document.createElement("tr");
+                var urlNode = document.createElement("td");
+                urlNode.setAttribute("style","max-width: 40px;" +
+                    "    text-overflow: ellipsis;" +
+                    "    overflow: hidden;" +
+                    "    white-space: nowrap;");
+                var actualUrl = document.createElement("a");
+                var text = document.createTextNode(theUrl);
+                actualUrl.appendChild(text);
                 actualUrl.setAttribute("style","color: white;");
-                actualUrl.addEventListener("click", function () {
-                    localStorageGetsUrl(theUrl);
-                })
-            }else{
-                actualUrl.addEventListener("click", function (){
-                    var win = window.open(page_url, '_blank');
-                    win.focus();
-                })
+                if(host == "") {
+                    actualUrl.setAttribute("href",page_url);
+                    actualUrl.addEventListener("click", function () {
+                        localStorageGetsUrl(theUrl);
+                    })
+                }else{
+                    actualUrl.addEventListener("click", function (){
+                        var win = window.open(theUrl, '_blank');
+                        win.focus();
+                    })
+                }
+
+                urlNode.appendChild(actualUrl);
+                firstRow.appendChild(urlNode);
+                table.appendChild(firstRow);
+
+                //image row
+                var secondRow = document.createElement("tr");
+                var imageNode = document.createElement("td");
+                imageNode.setAttribute("style","border-radius: 10px;");
+                var imgUrl = document.createElement("a");
+                if(host == ""){
+                    imgUrl.setAttribute("href",page_url);
+                    imgUrl.addEventListener("click",function() {localStorageGetsUrl(theUrl);})
+                }else{
+                    imgUrl.addEventListener("click", function (){
+                        var win = window.open(theUrl, '_blank');
+                        win.focus();
+                    })
+                }
+                var img = document.createElement("img");
+                img.setAttribute("src","data:image/jpeg;base64,"+image3);
+                img.setAttribute("style","border-radius: 10px;");
+                imgUrl.appendChild(img);
+
+                imageNode.appendChild(imgUrl);
+                secondRow.appendChild(imageNode);
+                table.appendChild(secondRow);
+
+                //append table to base node
+                node.appendChild(table);
             }
-
-
-            actualUrl.appendChild(text);
-            urlNode.appendChild(actualUrl);
-            firstRow.appendChild(urlNode);
-            table.appendChild(firstRow);
-
-            //image row
-            var secondRow = document.createElement("tr");
-            var imageNode = document.createElement("td");
-            imageNode.setAttribute("style","border-radius: 10px;");
-            var imgUrl = document.createElement("a");
-            if(host == ""){
-                imgUrl.setAttribute("href",page_url);
-                imgUrl.addEventListener("click",function() {localStorageGetsUrl(theUrl);})
-            }else{
-                imgUrl.addEventListener("click", function (){
-                    var win = window.open(page_url, '_blank');
-                    win.focus();
-                })
-            }
-            var img = document.createElement("img");
-            img.setAttribute("src","data:image/jpeg;base64,"+image3);
-            img.setAttribute("style","border-radius: 10px;");
-            imgUrl.appendChild(img);
-
-            imageNode.appendChild(imgUrl);
-            secondRow.appendChild(imageNode);
-            table.appendChild(secondRow);
-
-            //append table to base node
-            node.appendChild(table);
         }
     }
     var  url2= "https://www.googleapis.com/pagespeedonline/v2/runPagespeed?url="+theUrl+"&screenshot=true";
     xmlHttp.open("GET", url2, true); // true for asynchronous
     xmlHttp.send(null);
+
 }
 
 //Function which replace a charachter with another in an given string
@@ -142,14 +145,18 @@ function triggerRepresentationByHistory(startDate,endDate,blacklist) {
                 }
             });
         }else{
+            var contor = 0;
             data.forEach(function(page) {
-                if(!isBlackListed(blacklist,page.url) && (extractHostname(page.url) == localStorage["hostname"])){
+                if(!isBlackListed(blacklist,page.url) && (extractHostname(page.url) == localStorage["hostname"]) && contor < 10){
+                    contor = contor + 1;
                     httpGetAsync(page.url);
                 }
             });
-            localStorage["hostname"] = "";
+
         }
+        localStorage["hostname"] = "";
     });
+
     document.getElementById("dateSubmit").disabled = false;
 }
 
@@ -244,7 +251,7 @@ function displayfolder(name){
     node.appendChild(table);
 }
 
-//Function which creates bookmarks representation using httpGetAsync and displayfolder
+//Function which creates bookmarks representation using httpGetAsync
 function triggerReprezentationByBookmarks(folders_list, blacklist){
     if(localStorage["hostname"] == ""){
         for (key in folders_list){
