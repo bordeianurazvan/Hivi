@@ -197,7 +197,7 @@ function getFoldersFromBookmarks(folders, key, data){
             getFoldersFromBookmarks(folders, data.title, data.children[i]);
         }
     }else{
-        if(data.url != null) {
+        if(data.url != null && !isBlackListed(blackList,data.url)) {
             if (folders[key] != null)
                 folders[key].push({
                     url:data.url,

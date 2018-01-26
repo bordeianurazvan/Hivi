@@ -7,16 +7,6 @@ document.getElementById("save").addEventListener("click",function(e){
         getPocket();
         localStorage["hivi_data_source"] = "pocket";
     }
-    var value = document.getElementById("linksNumber").value;
-    if(value.length !==0){
-        try{
-            if(value >= 1 && value <= 30) {
-                localStorage["hivi_max_entries"] = value;
-            }
-        } catch(err){
 
-        }
-
-    }
 });
 
