@@ -31,6 +31,7 @@ function localStorageGetsUrl(url){
     localStorage["hostname"] = url;
 }
 
+//Function which creates the a table based on a URL
 function httpGetAsync(theUrl, callback)
 {
     var xmlHttp = new XMLHttpRequest();
@@ -112,6 +113,8 @@ function httpGetAsync(theUrl, callback)
     xmlHttp.open("GET", url2, true); // true for asynchronous
     xmlHttp.send(null);
 }
+
+//Function which replace a charachter with another in an given string
 function replaceInString(string, character, characterToReplace){
     var newString = "";
     for(var i = 0; i < string.length; i++) {
@@ -124,6 +127,7 @@ function replaceInString(string, character, characterToReplace){
     return newString;
 }
 
+//Function which takes data from history and creates the representation using httpGetAsync
 function triggerRepresentationByHistory(startDate,endDate,blacklist) {
     chrome.history.search({text: '', startTime:startDate, endTime:endDate}, function (data) {
         if(localStorage["hostname"] == ""){
@@ -140,13 +144,7 @@ function triggerRepresentationByHistory(startDate,endDate,blacklist) {
         }else{
             data.forEach(function(page) {
                 if(!isBlackListed(blacklist,page.url) && (extractHostname(page.url) == localStorage["hostname"])){
-                    try {
-                        httpGetAsync(page.url);
-                    }
-                    catch(err) {
-                        document.getElementById("thumbnail").innerHTML = err.message;
-                    }
-
+                    httpGetAsync(page.url);
                 }
             });
             localStorage["hostname"] = "";
@@ -155,6 +153,7 @@ function triggerRepresentationByHistory(startDate,endDate,blacklist) {
     document.getElementById("dateSubmit").disabled = false;
 }
 
+//Function which takes data from Pocket and creates the representation using httpGetAsync
 function triggerReprezentationByPocket(blacklist,pocketObject){
     if(localStorage["hostname"] == ""){
         var list = {};
@@ -179,6 +178,7 @@ function triggerReprezentationByPocket(blacklist,pocketObject){
     }
 }
 
+//Function which creates an object based on the data from the bookmarks
 function getLinksFromBookmarks(folders, key, data){
     if(data.hasOwnProperty("children")) {
         for (var i = 0; i < data.children.length; i++) {
@@ -196,7 +196,7 @@ function getLinksFromBookmarks(folders, key, data){
     }
 }
 
-
+//Function which creates the frolder reprezentation from bookmarks
 function displayfolder(name){
     var node = document.getElementById("thumbnail");
 
@@ -244,6 +244,7 @@ function displayfolder(name){
     node.appendChild(table);
 }
 
+//Function which creates bookmarks representation using httpGetAsync and displayfolder
 function triggerReprezentationByBookmarks(folders_list, blacklist){
     if(localStorage["hostname"] == ""){
         for (key in folders_list){
@@ -262,6 +263,7 @@ function triggerReprezentationByBookmarks(folders_list, blacklist){
     }
 }
 
+//Main function
 function displayHistory(){
 
     //working with date interval
@@ -311,4 +313,5 @@ function displayHistory(){
 
 }
 
+//Calling the main function
 displayHistory();
