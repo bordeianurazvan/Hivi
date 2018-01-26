@@ -60,6 +60,7 @@ li a:hover:not(.active) {
 
 .textTimeSelector{
     text-align: center;
+    font-size: 13px;
 
 }
 
@@ -75,4 +76,14 @@ li a:hover:not(.active) {
 .thumbnailsContainer{
     margin:auto;
     text-align: center;
+}
+
+.dateSubmit{
+    background:    #191919;
+    color:         white;
+    display:       inline-block;
+    font:          15px "Calibri", sans-serif;
+    text-align:    center;
+    padding:1px 5px;
+    margin:5px;
 }
