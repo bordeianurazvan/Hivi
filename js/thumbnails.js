@@ -2,6 +2,7 @@
 //settings
 var source = localStorage["hivi_data_source"];
 var blackList = JSON.parse(localStorage["hivi_blacklist_items"]).items;
+var results = 20;
 if(localStorage["hostname"] == null){
     localStorage["hostname"] = "";
 }
@@ -10,6 +11,15 @@ if(localStorage["hostname"] == null){
 function isBlackListed(list,item){
     for(var i = 0; i < list.length; i++) {
         if(item == list[i]){
+            return true;
+        }
+    }
+    return false;
+}
+
+function containCharacter(string, char){
+    for(var i = 0; i < string.length; i++) {
+        if(char === string[i]){
             return true;
         }
     }
@@ -40,7 +50,6 @@ function httpGetAsync(theUrl, callback)
         page_url = "thumbnails.html";
     }else{
         page_url = theUrl;
-        console.log(page_url);
     }
     xmlHttp.onreadystatechange = function() {
         if (xmlHttp.readyState === 4){
@@ -111,6 +120,7 @@ function httpGetAsync(theUrl, callback)
             }
         }
     }
+
     var  url2= "https://www.googleapis.com/pagespeedonline/v2/runPagespeed?url="+theUrl+"&screenshot=true";
     xmlHttp.open("GET", url2, true); // true for asynchronous
     xmlHttp.send(null);
@@ -147,7 +157,7 @@ function triggerRepresentationByHistory(startDate,endDate,blacklist) {
         }else{
             var contor = 0;
             data.forEach(function(page) {
-                if(!isBlackListed(blacklist,page.url) && (extractHostname(page.url) == localStorage["hostname"]) && contor < 10){
+                if(!isBlackListed(blacklist,page.url) && (extractHostname(page.url) == localStorage["hostname"]) && contor < results && !containCharacter(page.url,";")){
                     contor = contor + 1;
                     httpGetAsync(page.url);
                 }
@@ -255,11 +265,9 @@ function displayfolder(name){
 function triggerReprezentationByBookmarks(folders_list, blacklist){
     if(localStorage["hostname"] == ""){
         for (key in folders_list){
-            console.log(key);
             displayfolder(key);
         }
     }else{
-        console.log(localStorage["hostname"]);
         var folder = localStorage["hostname"];
         for(var i = 0; i < folders_list[folder].length; i++){
             if(!isBlackListed(blacklist,folders_list[folder][i])){
