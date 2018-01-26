@@ -17,41 +17,47 @@
 </div>
 <div class="container">
     <div class="contentContainer">
-        <div class="baseContainer">
-            <div class="blacklist">
+        <div class="dataSourceContainer">
                 <div class="centered">
-                    <h2>Blacklist</h2>
-                </div>
-                <div class="centered">
-                    <table id="blacklistTable">
-                        <tr>
-                            <td><input id="blacklistInputField" type="text" class="blacklistInput"></td>
-                            <td><button id="blacklistInputTrigger">Add</button></td>
-                        </tr>
-                    </table>
-                </div>
-
-            </div>
-            <div class="other">
-                <div class="centered">
-                    <h2>Settings</h2>
+                    <h2>Data Source:</h2>
                 </div>
                 <div class="setting">
-                    <h3>Data source:</h3>
                     <form action="">
-                        <input id="history" type="radio" name="source" value="history"> History<br>
-                        <input id="bookmarks" type="radio" name="source" value="bookmarks"> Bookmarks<br>
-                        <input id="pocket" type="radio" name="source" value="pocket"> Pocket
+                        <table class="formTable">
+                            <tr>
+                                <td class="history"><input id="history" type="radio" name="source" value="history"> History<br></td>
+                            </tr>
+                            <tr>
+                                <td class="bookmarks"><input id="bookmarks" type="radio" name="source" value="bookmarks"> Bookmarks<br></td>
+                            </tr>
+                            <tr>
+                                <td class="pocket"><input id="pocket" type="radio" name="source" value="pocket"> Pocket</td>
+                            </tr>
+                        </table>
                     </form>
                 </div>
-                <br>
-                <div class="setting">
-                    <button class="save" id="save">Save</button>
+
+            <br>
+                <div>
+                    <button class="button" id="save">Save</button>
                 </div>
+        </div>
+        <div class="blackListContainer">
+            <div class="centered">
+                <h2>Blacklist</h2>
             </div>
+
+                <table class="blacklistTable" id="blacklistTable">
+                    <tr>
+                        <td ><input id="blacklistInputField" type="text" class="blacklistInput" placeholder="Put your link here..."></td>
+                        <td id="blackListButton"><button id="blacklistInputTrigger" class="button">Add</button></td>
+                    </tr>
+                </table>
+
         </div>
     </div>
 </div>
+
 <script src="js/pocket.js"></script>
 <script src="js/blacklistHandler.js"></script>
 <script src="js/settings.js"></script>

@@ -11,6 +11,8 @@ function getPocket() {
                 if (xmlhttp.status === 200) {
                     var result = JSON.parse(xmlhttp.responseText);
                     localStorage['hivi_pocket'] = JSON.stringify(result.list);
+                    localStorage["hivi_data_source"] = "pocket";
+                    alert("Data source was changed to Pocket")
                 }
             }
         };

@@ -7,7 +7,7 @@ body{
     height: 100%;
     margin: 0;
     background-color: darkgrey;
-    overflow:hidden;
+
 }
 
 ul {
@@ -63,57 +63,77 @@ li a:hover:not(.active) {
     height:100%;
 }
 
-.baseContainer{
+.dataSourceContainer{
     background-color: white;
-    width:90%;
-    height:95%;
+    width: 50%;
     display:inline-block;
+    text-align: center;
     /*display: flex;*/
 }
-.blacklist{
-    float: left;
-    width: 60%;
-    height:100%;
+.blackListContainer{
     background-color: white;
+    width: 50%;
+    display:inline-block;
     text-align: center;
-
-}
-.other{
-    float: left;
-    width:40%;
-    height: 100%;
-    background-color: white;
-    margin:auto;
-    text-align: center;
+    margin-top:30px;
+    height: auto;
 }
 .centered{
     display: block;
+    background-color: black;
+    /*color: #ff312d;*/
+    color: white;
 }
-table{
+
+h2{
+    margin-top:0;
+}
+.formTable {
     display:inline-block;
-    border:2px solid black;
 
 }
-td{
+
+.blacklistTable{
+    width: 100%;
+}
+
+.formTable td{
     text-align:left
 }
-td:first-child {
-    min-width: 400px;
-    max-width: 600px;
-    height:25px;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    border:2px solid black;
-}
-td:last-child {
-    min-width: 40px;
-    max-width: 50px;
-    border:2px solid black;
-}
+
 .blacklistInput{
     width:100%;
+    padding: 7px;
+    margin:10px;
 }
 .setting{
-    text-align:left;
+    text-align:center;
+    padding: 5px;
+}
+
+.button{
+    background:    #191919;
+    color:         white;
+    display:       inline-block;
+    font:          20px "Calibri", sans-serif;
+    text-align:    center;
+    padding:3px 10px;
+    margin:5px;
+}
+form{
+    font-size: 15px;
+}
+
+#blackListButton
+{
+    width:120px;
+}
+
+@media (max-width: 1500px) {
+    .dataSourceContainer{
+        width: 80%;
+    }
+    .blackListContainer{
+        width: 80%;
+    }
 }

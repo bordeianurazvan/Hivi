@@ -20,8 +20,16 @@ function generateBLEntry(value,id){
     var z = document.createElement("td");
     var v = document.createElement("button");
     y.innerHTML = value;
+    y.setAttribute("style","float:left; padding-left:13px; max-width: 500px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;");
     v.setAttribute("id","blacklistElementRemove"+id);
     v.innerHTML = "X";
+    v.setAttribute("style","background:    #191919;\n" +
+        "    color:         white;\n" +
+        "    display:       inline-block;\n" +
+        "    font:          10px \"Calibri\", sans-serif;\n" +
+        "    text-align:    center;\n" +
+        "    padding:1px 5px;\n" +
+        "    margin:5px;");
     v.addEventListener("click",function(e){
         //remove entry
         var node = document.getElementById("blacklistElementRemove"+id);
