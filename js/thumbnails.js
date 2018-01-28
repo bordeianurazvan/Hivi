@@ -172,27 +172,16 @@ function triggerRepresentationByHistory(startDate,endDate,blacklist) {
 
 //Function which takes data from Pocket and creates the representation using httpGetAsync
 function triggerReprezentationByPocket(blacklist,pocketObject){
-    if(localStorage["hostname"] == ""){
-        var list = {};
-        for (var i in pocketObject){
-            var url = pocketObject[i].resolved_url;
-            if(!isBlackListed(blacklist,url)){
-                var host = extractHostname(url);
-                if(list[host] == null){
-                    httpGetAsync(extractHostname(url));
-                    list[host] = 1;
-                }
-            }
+    localStorage["hostname"] = "pocket";
+    var contor = 0;
+    for (var i in pocketObject){
+        var url = pocketObject[i].resolved_url;
+        if(!isBlackListed(blacklist,url) && contor < results){
+            contor = contor + 1;
+            httpGetAsync(url);
         }
-    }else{
-        for (var i in pocketObject){
-            var url = pocketObject[i].resolved_url;
-            if(!isBlackListed(blacklist,url) && (extractHostname(url) == localStorage["hostname"])){
-                httpGetAsync(url);
-            }
-        }
-        localStorage["hostname"] = "";
     }
+    localStorage["hostname"] = "";
 }
 
 //Function which creates an object based on the data from the bookmarks
