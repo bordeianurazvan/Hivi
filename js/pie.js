@@ -141,21 +141,6 @@ document.getElementById("dateSubmit").addEventListener("click",function(e){
     triggerRepresentationByHistory(start,end,results,blackList);
 });
 
-/*document.getElementById("start").addEventListener("change",function(e){
-    start = (new Date(e.srcElement.value)).setHours(0,0,0,0);
-    var s = d3.selectAll('svg');
-    s.selectAll("*").remove();
-    s = s.remove();
-   triggerRepresentationByHistory(start,end,results,blackList);
-});
-
-document.getElementById("end").addEventListener("change",function(e){
-    end = (new Date(e.srcElement.value)).setHours(23,59,59,999);
-    var s = d3.selectAll('svg');
-    s.selectAll("*").remove();
-    s = s.remove();
-   triggerRepresentationByHistory(start,end,results,blackList);
-});*/
 
 function getUrlsForALabel(label){
     var urls = [];
@@ -281,8 +266,6 @@ function drawPie(){
             .attr("class", "center"); // go back button
     }
 
-
-
     var width = 960,
         height = 600,
         radius = Math.min(width,height) / 2;
@@ -317,11 +300,8 @@ function drawPie(){
 
         function domainData (){
             var labels = color.domain();
-            //var labels = historyDomainEntries;
             return labels.map(function(label){
                 return { label: label, value: 1 }
-                //return { label: label, value: Math.random() }
-
             })
                 .sort(function(a,b) {
                     return d3.descending(a.label, b.label);

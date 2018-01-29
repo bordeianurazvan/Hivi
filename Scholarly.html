@@ -1,0 +1,268 @@
+
+<!DOCTYPE html>
+<html lang="ro">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Scholarly HTML - Proiect Antvior</title>
+    <link rel="stylesheet" href="css/scholarly.min.css">
+    <script src="js/scholarly.min.js"></script>
+  </head>
+  <body prefix="schema: http://schema.org">
+    <header>
+      <div class="banner">
+      </div>
+      <h1>Scholarly HTML - Proiect HiVi</h1>
+    </header>
+    <div role="contentinfo">
+      <dl>
+        <dt>Autori</dt>
+        <dd>
+          <ul>
+            <li>
+				Tifrea George Marian
+            </li>
+            <li>
+                Bordeianu Cocea Andrei Razvan
+            </li>
+			<li>
+                Damoc Valentin
+            </li>
+          </ul>
+        </dd>
+        </dl>
+    </div>
+    <section typeof="sa:Abstract" id="abstract" role="doc-abstract">
+      <h2>Abstract</h2>
+      <p><strong>HiVi</strong> este o extensie de browser Web capabilă să ofere utilizatorului maniere multiple de vizualizare a istoricului navigării 
+	  şi a adreselor Web favorite (bookmark-uri) locale sau preluate din surse externe precum Pocket. Reprezentările grafice generate pot fi 
+	  exportate în formatele PNG şi SVG. Extensia poate fi configurată astfel încât utilizatorul poate alege sursa datelor și poate exclude anumite Url-uri din reprezentari.
+			</p>
+    </section>
+    <section id="introduction" role="doc-introduction">
+      <!-- review? -->
+      <h2>Introducere</h2>
+      <p>
+        HiVi este un proiect dezvoltat in javascript ce are rolul de a contopi intr-o extensie istoricul browser-ului, bookmark-urile și paginile favorite din Pocket.
+      </p>
+    </section>
+	<section id="semantics">
+      <!-- review? -->
+      <h2>Design general</h2>
+      <p>
+            Interfata este una simpla, bazata pe html, css si javascript.
+      </p>
+    <figure>
+        <img src="img/history-network.png" alt="">
+        <figcaption>Imaginea completa a reprezentarii istoricului ca o retea</figcaption>
+    </figure>
+    <figure>
+        <img src="img/history-pie.png" alt="">
+        <figcaption>Imaginea completa a reprezentarii istoricului ca un pie</figcaption>
+    </figure>
+    <figure>
+        <img src="img/history-thumbnails.png" alt="">
+        <figcaption>Imaginea completa a reprezentarii istoricului ca thumbnails</figcaption>
+    </figure>
+	<figure>
+        <img src="img/settings.png" alt="">
+        <figcaption>Imaginea completa a paginii de setari</figcaption>
+    </figure>
+	<figure>
+        <img src="img/change-date.png" alt="">
+        <figcaption>Pop-up pentru selectarea datei</figcaption>
+    </figure>
+	<figure>
+        <img src="img/pocket-login.png" alt="">
+        <figcaption>Pop-up pentru Pocket login</figcaption>
+    </figure>
+     </section>
+    <section id="structure">
+      <!-- review? -->
+      <h2>Structura</h2>
+      <p>
+        Aplicatia este structurata in 3 tipuri de vizualizare a datelor ce provin din 3 surse diferite(history, bookmarks, Pocket):
+      </p>
+      <ul>
+         <li>Network</li>
+         <li>Pie</li>
+         <li>Thumbnails</li>
+      </ul>
+      <section id="Root">
+        <!-- review? -->
+        <h3>Network</h3>
+        <p>
+			Această componentă genereaza o reprezentare, pe baza legăturilor dintre Url-uri folosind o structura simpla de cercuri si sageti.
+        </p>
+		
+		<section id="hunk">
+        <!-- review? -->
+        <h3>History</h3>
+            <p>
+				De exemplu dacă un utilizator va naviga printre paginile unui site web  acestea vor fi reprezentate fiecare in parte sub forma unui cerc de culoare rosie in care plasat domeniul acelei pagini.
+			  Legatura dintre cercuri este reprezentata prin sageti. In momentul in care se da hover peste un cerc apare titlul complet al paginii vizitate sub forma unui pop-up.
+			  Fiecare cerc are un meniu contextual care ii permite utilizatorului sa viziteze pagina sau sa o stearga din istoric.
+
+            </p>
+
+      </section>
+	  <section id="hunk">
+        <!-- review? -->
+        <h3>Bookmarks</h3>
+            <p>
+				In cadrul acestei reprezentari fiecare pagina este reprezentata sub forma unui cerc de culoare galbena, iar folderele in care sunt grupate aceste pagini sunt reprezentate sub forma unor cercuri de culoare rosie.
+			  Legaturile dintre cele doua tipuri de cercuri respectiv pagina-folder este reprezentata printr-o sageata. In momentul in care se da hover peste un cerc galben apare titlul complet al paginii vizitate sub forma unui pop-up.
+			  Fiecare cerc galben are un meniu contextual care ii permite utilizatorului sa viziteze pagina sau sa o stearga din setul de bookmark-uri.
+			</p>
+
+      </section>
+	  <section id="hunk">
+        <!-- review? -->
+        <h3>Pocket</h3>
+            <p>
+              Aici intalnim o modalitate de reprezentare asemenatoare celei de la history, singura diferenta ar fi aceea ca legatura dintre doua pagini se bazeaza pe domeniul acestora. Adica intre doua pagini exista legatura
+			  doar doaca sunt din acelasi domeniu.
+			</p>
+
+      </section>
+
+      </section>
+      <section id="Root">
+        <!-- review? -->
+        <h3>Pie</h3>
+        <p>
+			Această componentă genereaza o reprezentarea a datelor folosind o structura de pie. Fiecare felie a placintei va reprezenta in functie de tipul de date ales: o pagina din istoric, un folder sau pagina din setul 
+			de bookmark-uri sau o pagina obtinuta pe baza Pocket API.
+        </p>
+		
+		<section id="hunk">
+        <!-- review? -->
+        <h3>History</h3>
+            <p>
+				Daca tipul de date ales pentru a fi reprezentat este "history" atunci pie-ul generat va grupa paginile vizitate dupa domeniu tinandu-se cont de numarul de pagini cu domeniul comun. Dimensiunea unui slice este data
+				de numarul de pagini cu domeniul comun. Utilizatorul poate da click pe orice slice din pie, astfel se genereaza un alt pie in care fiecare slice este o pagina apartinand acelui domeniu. Mai mult de cat atat in centrul
+				pie-ului va aparea text-ul "Go Back" ce ii permite utilizatorului sa revina la reprezentarea domeniilor printr-un simplu click.
+				Pentru o mai usoara vizualizare a datelor, fiecare slice are atasat un indicator care confera informatii despre acesta.
+            </p>
+
+      </section>
+	  <section id="hunk">
+        <!-- review? -->
+        <h3>Bookmarks</h3>
+            <p>
+				In cadrul acestui tip de date, structura pie-ului va fi asemanatoare celei de la history. Singura diferenta ar fi ca slice-urile initiale reprezinta folderele din bara de bookmark-uri. La apasarea unui slice,
+				pie-ul este redesenat cu link-urile din folderul corespunzator slice-ului ales initial.
+
+      </section>
+	  <section id="hunk">
+        <!-- review? -->
+        <h3>Pocket</h3>
+            <p>
+              Aici pie-ul are o structura clasica, in care fiecare slice reprezinta un link din lista de linkuri favorite obtinuta folosind Pocket API.
+			</p>
+
+      </section>
+	  </section>
+
+	  <section id="Root">
+        <!-- review? -->
+        <h3>Thumbnails</h3>
+        <p>
+            In acesta reprezentare link-urile sunt structurate sub forma unor tabele.
+        </p>
+		
+		<section id="hunk">
+        <!-- review? -->
+        <h3>History</h3>
+            <p>
+                In prima instanta likurile din istoric sunt grupate dupa domeniu. Fiecare tabel va reprezenta un domeniu si va avea doua componente. Prima componenta este titlul domeniului respectiv,
+              iar cea dea doua componenta va fi o imagine ce reprezinta un screenshot al paginii respective. La selectarea unuia dintre domeniile prezentate, in locul tabelelor initiale vor fi generate
+              alte tabele ce reprezinta intrarile din istoric ce apartin de domeniul respectiv. Aici titlul tabelului il va redirecta pe utilizator pe pagina respectiva. Pentru a putea reveni la tabelele initiale, utilizatorul va accesa din nou pagina thumbnails.
+            </p>
+
+      </section>
+	  <section id="hunk">
+        <!-- review? -->
+        <h3>Bookmarks</h3>
+            <p>
+                In aceasta reprezentare, paginile salvate in bookmarks vor fi grupate dupa fisierele din care provin. Fiecare fisier va fi reprezentat ca un tabel ce contine numele fisierului si o imagine de reprezinta un director.
+              Pentru a accesa link-urile dintr-un anumit director, utilizatorul va selecta directorul respectiv. La fel ca si la reprezentarea dupa istoric, titlul noilor tabele aparute vor redirectiona utilizatorul pe pagina aleasa.
+              Deasemenea utilizatorul poate reveni la reprezentarea directoarelor accesand din nou pagina thumbnails.
+			</p>
+
+      </section>
+	  <section id="hunk">
+        <!-- review? -->
+        <h3>Pocket</h3>
+            <p>
+              In acest caz paginile salvate in contul de pocket vor fi structurate sub forma de tabele ce redirectioneaza utilizatorul catre pagina ce o reprezinta.
+			</p>
+
+      </section>
+
+      </section>
+      </section>
+      
+    
+ 
+      <section id="roles">
+        <h3>Utilizare</h3>
+        <p>
+            Flow-ul aplicatiei:
+        </p>
+        <ul>
+            <li>
+                Utilizatorul acceseaza extensia din coltul dreapta al browserului.
+				Aici ii sunt puse la dispozitie doua butoane "View" si "Settings".
+            </li>
+            <li>
+                Apasand butonul view utilizatorul este redirectionat pe pagina reprezentarii de tip network avand afisate datele din history (default).
+            </li>
+            <li>
+                Din acest moment utilizatorul poate alege din navbar-ul din partea de sus a paginii maniera de vizualizare a datelor respectiv Thumbnails,Pie,Network. Tot odata el poate accesa si pagina de setari. 
+            </li>
+            <li>
+                In cadrul paginii de setari, are la dispozitie 3 surse de date: history, bookmarks si Pocket. Tot in cadrul acestei pagini, utilizatorul poate sa adauge link-uri intr-o lista denumita "Blacklist". Toate
+				linkuri adaugate din aceasta lista nu vor face parte din setul de date ales pentru reprezentare.
+            </li>
+            <li>
+                 In fiecare din cele 3 reprezentari ale datelor din history, utilizatorul poate seta perioada pentru care doreste sa vizualizeze istoricul.
+            </li>
+            <li>
+                Pentru reprezentarile Network si Pie, utilizatorul are posibilitatea de a le descarca atat in format SVG cat si sub forma unei imagini in format PNG.
+            </li>
+        </ul>
+      </section>
+      <section id="article-title-semantics">
+        <h3>Version Control</h3>
+        <p>
+		   Pentru stocarea / versionarea proiectului s-a utilizat <a href="https://github.com/bordeianurazvan/Proiect-DAWNC" target="_blank">Git</a>
+        </p>
+      </section>
+      <section id="references">
+        <h3>
+            Bibliogragie
+        </h3>
+        <ul>
+            
+            <li>
+                <a href="https://d3js.org/">D3js</a> - pagina oficiala a librariei folosite pentru vizualizarea datelor
+            </li>
+			<li>
+                <a href="https://developer.chrome.com/extensions/history">History API</a> - pagina oficiala a API-ului folosit pentru obtinerea datelor din istoric
+            </li>
+			<li>
+                <a href="https://developer.chrome.com/extensions/bookmarks">Bookmarks API</a> - pagina oficiala a API-ului folosit pentru obtinerea datelor din bookmarks
+            </li>
+			<li>
+                <a href="https://developers.google.com/speed/docs/insights/v4/reference/pagespeedapi/runpagespeed">Page Speed API</a> - pagina oficiala a API-ului folosit pentru obtinerea imaginilor pe baza URL-ului
+            </li>
+			<li>
+                <a href="https://getpocket.com/developer/">Pocket API</a> - pagina oficiala a API-ului folosit pentru obtinerea datelor din Pocket
+            </li>
+        </ul>
+        <p>&zwnj;</p>
+        <p>&zwnj;</p>
+      </section>
+  </body>
+</html>
